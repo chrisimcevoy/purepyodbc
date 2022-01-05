@@ -13,11 +13,10 @@ from ctypes import (
     create_string_buffer,
     sizeof,
     c_wchar,
-    c_ssize_t,
 )
 from dataclasses import dataclass
 from pathlib import Path
-from subprocess import getstatusoutput
+from subprocess import getstatusoutput  # nosec
 from typing import Union, TYPE_CHECKING, Tuple
 
 
@@ -35,7 +34,6 @@ from ._enums import (
     EnvironmentAttributeType,
     DriverCompletion,
     SqlFetchType,
-    SqlColumnAttrType,
     DataType,
 )
 from ._typedef import SQLSMALLINT, SQLLEN, SQLULEN
@@ -137,10 +135,10 @@ if sys.platform not in ("win32", "cli", "cygwin"):
             from_buffer_u = UCS_dec
 
     # Esoteric case, don't really care.
-    elif UNICODE_SIZE < SQLWCHAR_SIZE:
-        raise OdbcLibraryError(
-            "Using narrow Python build with ODBC library expecting wide unicode is not supported."
-        )
+    # elif UNICODE_SIZE < SQLWCHAR_SIZE:
+    #     raise OdbcLibraryError(
+    #         "Using narrow Python build with ODBC library expecting wide unicode is not supported."
+    #     )
 
 
 def _handle_error(handler) -> None:
@@ -149,12 +147,12 @@ def _handle_error(handler) -> None:
         state = create_buffer(22)
         message = create_buffer(1024 * 4)
         f = __lib.SQLGetDiagRec
-        raw_s = lambda s: bytes(s, "ascii")
+        # raw_s = lambda s: bytes(s, "ascii")
     else:
         state = create_buffer_u(24)
         message = create_buffer_u(1024 * 4)
         f = __lib.SQLGetDiagRecW
-        raw_s = str
+        # raw_s = str
     native_error = c_int()
     buffer_len = c_short()
     err_list = []
