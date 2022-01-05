@@ -39,10 +39,6 @@ We both know you've got nothing better to do, so... why not give it a shot? The 
 
 In all sincerity, there are bound to be people who are better-qualified than I am to do something like this. You might just be one of those people!
 
-## What licence is this available under?
-
-I haven't decided yet. Can't you see I'm busy figuring out why pytest keeps screaming at me?
-
 ## What platforms does it support?
 
 The good news is that everything that works so far works wonderfully (more or less) on my machine, for my specific use case.
