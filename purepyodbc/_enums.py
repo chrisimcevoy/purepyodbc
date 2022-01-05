@@ -83,3 +83,7 @@ class SqlFetchType(Enum):
     SQL_FETCH_PRIOR = 4
     SQL_FETCH_ABSOLUTE = 5
     SQL_FETCH_RELATIVE = 6
+
+
+class LengthOrIndicatorType(Enum):
+    SQL_NULL_DATA = -1

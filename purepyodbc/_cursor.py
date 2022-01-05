@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import functools
 import typing
 from dataclasses import dataclass, field
@@ -7,7 +8,7 @@ from dataclasses import dataclass, field
 from ._typedef import SQLLEN
 from ._row import Row
 from . import _odbc
-from ._enums import HandleType
+from ._enums import HandleType, DataType
 from ._handler import Handler
 from ._typedef import SQLHSTMT
 
@@ -57,6 +58,25 @@ class Cursor(Handler[SQLHSTMT]):
             # Next, the application retrieves the name, data type, precision,
             # and scale of each result set column with SQLDescribeCol.
             description = _odbc.sql_describe_col(self, column_number)
-            value = _odbc.sql_get_data(self, column_number, description)
+            raw_value = _odbc.sql_get_data(self, column_number, description)
+
+            if raw_value is None:
+                value = raw_value
+            else:
+                convert = VALUE_CONVERTERS.get(description.data_type, str)
+                value = convert(raw_value)
+
             setattr(row, description.name, value)
         return row
+
+
+def parse_sql_bit(value: str) -> bool:
+    return bool(int(value))
+
+
+VALUE_CONVERTERS = {
+    DataType.SQL_BIT: parse_sql_bit,
+    DataType.SQL_INTEGER: int,
+    DataType.SQL_TINYINT: int,
+    DataType.SQL_TYPE_TIMESTAMP: datetime.datetime.fromisoformat,
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import typing
 from ctypes import (
     cdll,
     CDLL,
@@ -35,6 +36,7 @@ from ._enums import (
     DriverCompletion,
     SqlFetchType,
     DataType,
+    LengthOrIndicatorType,
 )
 from ._typedef import SQLSMALLINT, SQLLEN, SQLULEN
 
@@ -337,15 +339,32 @@ def sql_fetch(cursor: Cursor) -> bool:
 
 def sql_get_data(
     cursor: Cursor, column_number: int, column_description: ColumnDescription
-):
+) -> typing.Any:
+
     buffer_size = 4096
     buffer = create_string_buffer(buffer_size)
-    foo = SQLLEN()
+    length_or_indicator = SQLLEN()
+
     return_code = __lib.SQLGetData(
-        cursor.handle, column_number, 1, byref(buffer), buffer_size, byref(foo)
+        cursor.handle,
+        column_number,
+        1,
+        byref(buffer),
+        buffer_size,
+        byref(length_or_indicator),
     )
+
     check_success(return_code, cursor)
+
     # TODO: check return code for SQL_SUCCESS_WITH_INFO (partial data in buffer)
+
+    try:
+        indicator = LengthOrIndicatorType(length_or_indicator.value)
+        if indicator is LengthOrIndicatorType.SQL_NULL_DATA:
+            return None
+    except ValueError:
+        pass
+
     return buffer.value.decode()
 
 
