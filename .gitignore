@@ -2,3 +2,4 @@
 /.tox/
 /.idea/
 *.egg-info
+/dist/
