@@ -11,6 +11,7 @@ from . import _odbc
 @dataclass  # type: ignore
 class Handler(Generic[TSqlHandle]):
     """Python object which references a SQLHANDLE."""
+
     handle: TSqlHandle = field(init=False, default_factory=SQLHANDLE)
     _closed: bool = field(init=False, default=False)
 

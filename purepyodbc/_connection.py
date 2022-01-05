@@ -55,9 +55,9 @@ def connection_check(cnxn: Connection) -> bool:
 
 def connection_validate(cnxn: Connection) -> Connection:
     if not cnxn or not connection_check(cnxn):
-        raise TypeError('Connection object required')
+        raise TypeError("Connection object required")
 
     if not cnxn.handle.value:
-        raise ProgrammingError('Attempt to use a closed connection.')
+        raise ProgrammingError("Attempt to use a closed connection.")
 
     return cnxn

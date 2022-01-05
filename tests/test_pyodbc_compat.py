@@ -4,7 +4,7 @@ from typing import List
 
 
 def get_attrs(foo) -> List[str]:
-    return sorted([attr for attr in dir(foo) if not attr.startswith('_')])
+    return sorted([attr for attr in dir(foo) if not attr.startswith("_")])
 
 
 def test_module_attributes(pyodbc):
@@ -20,7 +20,7 @@ def test_cursor_attributes(cursor, pyodbc_cursor):
 
 
 def test_cursor_fetchone(cursor, pyodbc_cursor):
-    sql = 'select * from sys.tables'
+    sql = "select * from sys.tables"
     a = cursor.execute(sql).fetchone()
     b = pyodbc_cursor.execute(sql).fetchone()
 

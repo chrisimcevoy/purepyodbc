@@ -8,13 +8,13 @@ from . import _odbc
 from ._errors import *
 
 
-apilevel: str = '2.0'
+apilevel: str = "2.0"
 lowercase: bool = False
 native_uuid: bool = False
-paramstyle: str = 'qmark'
+paramstyle: str = "qmark"
 pooling: bool = True
 threadsafety: int = 1  # TODO: Check threadsafety
-version = '0.0.1.dev0'
+version = "0.0.1.dev0"
 
 __environment: _Environment
 
@@ -23,25 +23,19 @@ SQL_WCHAR = -8
 
 
 def connect(
-        connection_string: str,
-        autocommit: bool = False,
-        ansi: bool = False,
-        timeout: int = 0,
-        readonly: bool = False,
-        attrs_before: Dict[str, Any] = None,
-        encoding: str = None,
+    connection_string: str,
+    autocommit: bool = False,
+    ansi: bool = False,
+    timeout: int = 0,
+    readonly: bool = False,
+    attrs_before: Dict[str, Any] = None,
+    encoding: str = None,
 ) -> Connection:
 
     __ensure_environment_created()
 
     connection = __environment.connection(
-        connection_string,
-        autocommit,
-        ansi,
-        timeout,
-        readonly,
-        attrs_before,
-        encoding
+        connection_string, autocommit, ansi, timeout, readonly, attrs_before, encoding
     )
 
     return connection
@@ -49,7 +43,9 @@ def connect(
 
 def drivers(ansi: bool = False, include_attributes: bool = False) -> List[str]:
     __ensure_environment_created()
-    return _odbc.sql_drivers(__environment, ansi=ansi, include_attributes=include_attributes)
+    return _odbc.sql_drivers(
+        __environment, ansi=ansi, include_attributes=include_attributes
+    )
 
 
 def __ensure_environment_created():

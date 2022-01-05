@@ -1,3 +1,4 @@
+pre-commit==2.16.0
 pyodbc==4.0.32; platform_python_implementation != "PyPy"
 pytest==6.2.5
 tox==3.24.5

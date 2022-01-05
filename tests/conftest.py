@@ -22,7 +22,7 @@ def cursor(connection) -> purepyodbc.Cursor:
 
 @pytest.fixture()
 def pyodbc():
-    pyodbc = pytest.importorskip('pyodbc')
+    pyodbc = pytest.importorskip("pyodbc")
     yield pyodbc
 
 

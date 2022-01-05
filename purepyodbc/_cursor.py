@@ -10,6 +10,7 @@ from . import _odbc
 from ._enums import HandleType
 from ._handler import Handler
 from ._typedef import SQLHSTMT
+
 if typing.TYPE_CHECKING:
     from ._connection import Connection
 
@@ -17,7 +18,9 @@ if typing.TYPE_CHECKING:
 @dataclass
 class Cursor(Handler[SQLHSTMT]):
     connection: Connection
-    __rowcount: SQLLEN = field(init=False, default_factory=functools.partial(SQLLEN, -1))
+    __rowcount: SQLLEN = field(
+        init=False, default_factory=functools.partial(SQLLEN, -1)
+    )
 
     def __post_init__(self):
         _odbc.allocate_statement(self)

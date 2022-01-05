@@ -9,6 +9,7 @@ class OdbcVersion(Enum):
 
 class DataType(Enum):
     """https://docs.microsoft.com/en-us/sql/odbc/reference/appendixes/sql-data-types?view=sql-server-ver15"""
+
     SQL_TINYINT = -6
     SQL_BIT = -7
     # SQL_WCHAR = -8
@@ -22,6 +23,7 @@ class DataType(Enum):
 
 class EnvironmentAttributeType(Enum):
     """https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlsetenvattr-function?view=sql-server-ver15#comments"""
+
     SQL_ATTR_ODBC_VERSION = 200
     SQL_ATTR_CONNECTION_POOLING = 201
     SQL_ATTR_CP_MATCH = 202
