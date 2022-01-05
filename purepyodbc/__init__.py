@@ -1,7 +1,20 @@
 from typing import List, Dict, Any
 
 from ._connection import Connection
+from ._cursor import Cursor
 from ._environment import Environment as _Environment
+from ._errors import (
+    Warning,
+    Error,
+    InterfaceError,
+    DatabaseError,
+    DataError,
+    OperationalError,
+    IntegrityError,
+    InternalError,
+    ProgrammingError,
+    NotSupportedError,
+)
 from . import _odbc
 
 
@@ -14,9 +27,6 @@ threadsafety: int = 1  # TODO: Check threadsafety
 version = "0.0.1.dev0"
 
 __environment: _Environment
-
-SQL_CHAR = 1
-SQL_WCHAR = -8
 
 
 def connect(
@@ -48,3 +58,19 @@ def drivers(ansi: bool = False, include_attributes: bool = False) -> List[str]:
 def __ensure_environment_created():
     global __environment
     __environment = _Environment(pooling=pooling)
+
+
+__all__ = [
+    "Cursor",
+    "Warning",
+    "Error",
+    "InterfaceError",
+    "DatabaseError",
+    "DataError",
+    "OperationalError",
+    "IntegrityError",
+    "InternalError",
+    "ProgrammingError",
+    "NotSupportedError",
+    # TODO: __all__
+]
