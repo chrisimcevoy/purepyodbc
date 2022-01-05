@@ -1,5 +1,7 @@
 # purepyodbc
 
+![CI](https://github.com/chrisimcevoy/purepyodbc/actions/workflows/ci-ubuntu.yml/badge.svg)
+
 ## What is this?
 
 This is a project which aims to provide a "pure Python" implementation of ODBC.
