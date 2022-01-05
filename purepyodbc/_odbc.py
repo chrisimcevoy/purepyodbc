@@ -35,8 +35,11 @@ from ._typedef import SQLSMALLINT, SQLLEN, SQLULEN
 
 def find_library() -> Path:
     paths = (
-        Path('/') / 'usr' / 'lib64',
-        Path('/') / 'usr' / 'lib',
+        Path('/usr/lib64'),
+        Path('/usr/lib'),
+        Path("/usr/lib/i386-linux-gnu"),
+        Path("/usr/lib/x86_64-linux-gnu"),
+        Path("/usr/lib/libiodbc.dylib"),
     )
     for path in paths:
         libs = sorted(path.glob('libodbc.so*'))
