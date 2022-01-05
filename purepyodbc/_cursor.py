@@ -46,10 +46,16 @@ class Cursor(Handler[SQLHSTMT]):
             return None
         row = Row()
         for column_number in range(1, self.columncount + 1):
-            # TODO: Other packages call SQLColAttribute here to determine whether int() or long() is required, but that only applies to Python 2... right? RIGHT???!!
-            # _odbc.sql_col_attribute(cursor, column_number, SqlColumnAttrType.SQL_COLUMN_DISPLAY_SIZE)
+            # TODO: Other packages call SQLColAttribute here to determine whether int() or long()
+            #  is required, but that only applies to Python 2... right? RIGHT???!!
+            # _odbc.sql_col_attribute(
+            #     cursor,
+            #     column_number,
+            #     SqlColumnAttrType.SQL_COLUMN_DISPLAY_SIZE
+            # )
 
-            # Next, the application retrieves the name, data type, precision, and scale of each result set column with SQLDescribeCol.
+            # Next, the application retrieves the name, data type, precision,
+            # and scale of each result set column with SQLDescribeCol.
             description = _odbc.sql_describe_col(self, column_number)
             value = _odbc.sql_get_data(self, column_number, description)
             setattr(row, description.name, value)
