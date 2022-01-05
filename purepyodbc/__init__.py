@@ -14,7 +14,7 @@ native_uuid: bool = False
 paramstyle: str = 'qmark'
 pooling: bool = True
 threadsafety: int = 1  # TODO: Check threadsafety
-version = '1.0.0'  # TODO: Versioning? How?
+version = '0.0.1'
 
 __environment: _Environment
 
