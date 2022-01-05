@@ -22,7 +22,7 @@ jobs:
     - name: Check running containers
       run: docker ps -a
     - name: Check logs
-      run: docker logs backend
+      run: docker logs sqlserver
     - name: Install OS dependencies
       run: sudo apt install unixodbc
     - name: Set up Python ${{ matrix.python-version }}
