@@ -22,6 +22,14 @@ class Connection(Handler[SQLHDBC]):
     def handle_type(self) -> HandleType:
         return HandleType.SQL_HANDLE_DBC
 
+    def commit(self) -> None:
+        # TODO: Implement Connection.commit()
+        raise NotImplementedError
+
+    def rollback(self) -> None:
+        # TODO: Implement Connection.rollback()
+        raise NotImplementedError
+
     def close(self) -> None:
         _odbc.sql_disconnect(self)
         super().close()

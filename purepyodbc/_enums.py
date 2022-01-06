@@ -7,7 +7,7 @@ class OdbcVersion(Enum):
     SQL_OV_ODBC3_80 = 380
 
 
-class DataType(Enum):
+class SqlDataType(Enum):
     """https://docs.microsoft.com/en-us/sql/odbc/reference/appendixes/sql-data-types"""
 
     SQL_TINYINT = -6

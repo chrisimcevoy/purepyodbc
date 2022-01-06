@@ -19,6 +19,13 @@ def test_cursor_attributes(cursor, pyodbc_cursor):
     assert get_attrs(cursor) == get_attrs(pyodbc_cursor)
 
 
+def test_cursor_description(cursor, pyodbc_cursor):
+    sql = "select * from sys.tables"
+    cursor.execute(sql)
+    pyodbc_cursor.execute(sql)
+    assert cursor.description == pyodbc_cursor.description
+
+
 def test_cursor_fetchone(cursor, pyodbc_cursor):
     sql = "select * from sys.tables"
     a = cursor.execute(sql).fetchone()

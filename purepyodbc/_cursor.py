@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import datetime
-import functools
 import typing
 from dataclasses import dataclass, field
 
-from ._typedef import SQLLEN
+from ._dto import ColumnDescription, SqlColumnDescription
 from ._row import Row
 from . import _odbc
-from ._enums import HandleType, DataType
+from ._enums import HandleType
 from ._handler import Handler
 from ._typedef import SQLHSTMT
 
@@ -19,8 +17,12 @@ if typing.TYPE_CHECKING:
 @dataclass
 class Cursor(Handler[SQLHSTMT]):
     connection: Connection
-    __rowcount: SQLLEN = field(
-        init=False, default_factory=functools.partial(SQLLEN, -1)
+    __rowcount: int = -1
+    __column_descriptions: typing.Tuple[ColumnDescription] = field(
+        default_factory=tuple
+    )
+    __sql_column_descriptions: typing.Tuple[SqlColumnDescription] = field(
+        default_factory=list
     )
 
     def __post_init__(self):
@@ -28,7 +30,11 @@ class Cursor(Handler[SQLHSTMT]):
 
     @property
     def rowcount(self) -> int:
-        return _odbc.sql_row_count(self)
+        return self.__rowcount
+
+    @property
+    def description(self) -> typing.Sequence[ColumnDescription]:
+        return self.__column_descriptions
 
     @property
     def columncount(self) -> int:
@@ -40,43 +46,29 @@ class Cursor(Handler[SQLHSTMT]):
 
     def execute(self, query_string: str) -> Cursor:
         _odbc.sql_exec_direct(self, query_string)
+        self.__update_rowcount()
+        self.__update_sql_column_descriptions()
+        self.__update_column_descriptions()
         return self
+
+    def __update_rowcount(self) -> None:
+        self.__rowcount = _odbc.sql_row_count(self)
+
+    def __update_sql_column_descriptions(self) -> None:
+        self.__sql_column_descriptions = tuple(
+            _odbc.sql_describe_col(self, i + 1) for i in range(self.columncount)
+        )
+
+    def __update_column_descriptions(self) -> None:
+        self.__column_descriptions = tuple(
+            x.to_column_description() for x in self.__sql_column_descriptions
+        )
 
     def fetchone(self) -> typing.Optional[Row]:
         if not _odbc.sql_fetch(self):
             return None
         row = Row()
-        for column_number in range(1, self.columncount + 1):
-            # TODO: Other packages call SQLColAttribute here to determine whether int() or long()
-            #  is required, but that only applies to Python 2... right? RIGHT???!!
-            # _odbc.sql_col_attribute(
-            #     cursor,
-            #     column_number,
-            #     SqlColumnAttrType.SQL_COLUMN_DISPLAY_SIZE
-            # )
-
-            # Next, the application retrieves the name, data type, precision,
-            # and scale of each result set column with SQLDescribeCol.
-            description = _odbc.sql_describe_col(self, column_number)
-            raw_value = _odbc.sql_get_data(self, column_number, description)
-
-            if raw_value is None:
-                value = raw_value
-            else:
-                convert = VALUE_CONVERTERS.get(description.data_type, str)
-                value = convert(raw_value)
-
-            setattr(row, description.name, value)
+        for sql_column_description in self.__sql_column_descriptions:
+            value = _odbc.sql_get_data(self, sql_column_description)
+            setattr(row, sql_column_description.name, value)
         return row
-
-
-def parse_sql_bit(value: str) -> bool:
-    return bool(int(value))
-
-
-VALUE_CONVERTERS = {
-    DataType.SQL_BIT: parse_sql_bit,
-    DataType.SQL_INTEGER: int,
-    DataType.SQL_TINYINT: int,
-    DataType.SQL_TYPE_TIMESTAMP: datetime.datetime.fromisoformat,
-}

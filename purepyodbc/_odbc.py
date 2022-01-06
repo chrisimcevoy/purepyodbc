@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import sys
 import typing
 from ctypes import (
@@ -21,12 +22,13 @@ from subprocess import getstatusoutput  # nosec
 from typing import Union, TYPE_CHECKING, Tuple
 
 
+from ._dto import SqlColumnDescription
 from ._cursor import Cursor
 
 if TYPE_CHECKING:
     from ._environment import Environment
     from ._connection import Connection
-from ._errors import ProgrammingError
+from ._errors import ProgrammingError, InterfaceError
 from ._handler import Handler
 from ._enums import (
     ReturnCode,
@@ -35,7 +37,7 @@ from ._enums import (
     EnvironmentAttributeType,
     DriverCompletion,
     SqlFetchType,
-    DataType,
+    SqlDataType,
     LengthOrIndicatorType,
 )
 from ._typedef import SQLSMALLINT, SQLLEN, SQLULEN
@@ -288,16 +290,7 @@ def sql_num_result_cols(cursor: Cursor) -> int:
     return num_cols.value
 
 
-@dataclass(frozen=True)
-class ColumnDescription:
-    name: str
-    data_type: DataType  # TODO: data type enum
-    size: int
-    decimal_digits: int
-    is_nullable: bool
-
-
-def sql_describe_col(cursor: Cursor, column_number: int) -> ColumnDescription:
+def sql_describe_col(cursor: Cursor, column_number: int) -> SqlColumnDescription:
     buffer_length = 1024
     column_name = create_string_buffer(buffer_length)
     name_length = SQLSMALLINT()
@@ -320,12 +313,17 @@ def sql_describe_col(cursor: Cursor, column_number: int) -> ColumnDescription:
 
     check_success(return_code, cursor)
 
-    column_description = ColumnDescription(
+    sql_type = SqlDataType(data_type.value)
+    python_type = SQL_DATA_TYPE_MAP[sql_type].python_type
+
+    column_description = SqlColumnDescription(
         column_name.value.decode(),
-        DataType(data_type.value),
+        sql_type,
+        python_type,
         column_size.value,
         decimal_digits.value,
         bool(nullable.value),
+        column_number,
     )
 
     return column_description
@@ -338,7 +336,7 @@ def sql_fetch(cursor: Cursor) -> bool:
 
 
 def sql_get_data(
-    cursor: Cursor, column_number: int, column_description: ColumnDescription
+    cursor: Cursor, column_description: SqlColumnDescription
 ) -> typing.Any:
 
     buffer_size = 4096
@@ -347,7 +345,7 @@ def sql_get_data(
 
     return_code = __lib.SQLGetData(
         cursor.handle,
-        column_number,
+        column_description.column_number,
         1,
         byref(buffer),
         buffer_size,
@@ -365,7 +363,15 @@ def sql_get_data(
     except ValueError:
         pass
 
-    return buffer.value.decode()
+    raw_value = buffer.value.decode()
+
+    handling = SQL_DATA_TYPE_MAP.get(column_description.data_type, None)
+    if handling is None:
+        raise InterfaceError(
+            f"Unable to get output converter for SQL data type {column_description.data_type.name}"
+        )
+    value = handling.output_converter(raw_value)
+    return value
 
 
 def sql_drivers(
@@ -407,3 +413,32 @@ def sql_drivers(
         drivers.append(driver)
         direction = SqlFetchType.SQL_FETCH_NEXT
     return drivers
+
+
+def parse_sql_bit(value: str) -> bool:
+    return bool(int(value))
+
+
+T = typing.TypeVar("T")
+
+
+@dataclass(frozen=True)
+class SqlDataTypeHandling(typing.Generic[T]):
+    python_type: typing.Type[T]
+    output_converter: typing.Callable[[str], T]
+
+
+SQL_DATA_TYPE_MAP = {
+    SqlDataType.SQL_CHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
+    SqlDataType.SQL_WVARCHAR: SqlDataTypeHandling(
+        python_type=str, output_converter=str
+    ),
+    SqlDataType.SQL_BIT: SqlDataTypeHandling(
+        python_type=bool, output_converter=parse_sql_bit
+    ),
+    SqlDataType.SQL_INTEGER: SqlDataTypeHandling(python_type=int, output_converter=int),
+    SqlDataType.SQL_TINYINT: SqlDataTypeHandling(python_type=int, output_converter=int),
+    SqlDataType.SQL_TYPE_TIMESTAMP: SqlDataTypeHandling(
+        python_type=datetime.datetime, output_converter=datetime.datetime.fromisoformat
+    ),
+}
