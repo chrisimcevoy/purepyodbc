@@ -17,6 +17,7 @@ if typing.TYPE_CHECKING:
 @dataclass
 class Cursor(Handler[SQLHSTMT]):
     connection: Connection
+    arraysize: int = 1
     __rowcount: int = -1
     __column_descriptions: typing.Tuple[ColumnDescription] = field(
         default_factory=tuple
@@ -63,6 +64,35 @@ class Cursor(Handler[SQLHSTMT]):
         self.__column_descriptions = tuple(
             x.to_column_description() for x in self.__sql_column_descriptions
         )
+
+    def fetchmany(self, size: typing.Optional[int] = None) -> typing.List[Row]:
+        """Fetch the next set of rows of a query result.
+        https://www.python.org/dev/peps/pep-0249/#fetchmany
+        """
+
+        size = self.arraysize if size is None else size
+        rows = []
+
+        if size:
+            while len(rows) < size:
+                row = self.fetchone()
+                if not row:
+                    break
+                rows.append(row)
+
+        return rows
+
+    def fetchall(self) -> typing.List[Row]:
+        """Fetch all (remaining) rows in the result set."""
+        rows = []
+
+        while True:
+            row = self.fetchone()
+            if not row:
+                break
+            rows.append(row)
+
+        return rows
 
     def fetchone(self) -> typing.Optional[Row]:
         if not _odbc.sql_fetch(self):

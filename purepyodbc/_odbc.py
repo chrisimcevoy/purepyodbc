@@ -19,7 +19,7 @@ from ctypes import (
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import getstatusoutput  # nosec
-from typing import Union, TYPE_CHECKING, Tuple
+from typing import Union, TYPE_CHECKING
 
 
 from ._dto import SqlColumnDescription
@@ -28,7 +28,7 @@ from ._cursor import Cursor
 if TYPE_CHECKING:
     from ._environment import Environment
     from ._connection import Connection
-from ._errors import ProgrammingError, InterfaceError
+from ._errors import Error, ProgrammingError, InterfaceError
 from ._handler import Handler
 from ._enums import (
     ReturnCode,
@@ -138,12 +138,6 @@ if sys.platform not in ("win32", "cli", "cygwin"):
         else:
             from_buffer_u = UCS_dec
 
-    # Esoteric case, don't really care.
-    # elif UNICODE_SIZE < SQLWCHAR_SIZE:
-    #     raise OdbcLibraryError(
-    #         "Using narrow Python build with ODBC library expecting wide unicode is not supported."
-    #     )
-
 
 def _handle_error(handler) -> None:
     ansi = True
@@ -185,9 +179,9 @@ def _handle_error(handler) -> None:
         elif return_code is ReturnCode.SQL_INVALID_HANDLE:
             raise ProgrammingError("", return_code.name)
         elif return_code == ReturnCode.SQL_NO_DATA:
-            raise Exception(f"{state.value.decode()}{message.value.decode()}")
+            raise Error(f"{state.value.decode()}{message.value.decode()}")
         else:
-            raise Exception(f"Unhandled return code: {return_code}")
+            raise Error(f"Unhandled return code: {return_code}")
 
 
 def check_success(return_code: Union[int, ReturnCode], handler: Handler) -> None:
@@ -202,9 +196,6 @@ def check_success(return_code: Union[int, ReturnCode], handler: Handler) -> None
 
     if return_code not in success_codes:
         _handle_error(handler)
-
-
-ReturnCodeAndHandler = Tuple[int, Handler]
 
 
 def allocate_environment(environment: Environment) -> None:
