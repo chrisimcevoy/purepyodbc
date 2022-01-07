@@ -5,7 +5,14 @@ import purepyodbc
 
 # The connection string for the mssql instance running in docker.
 # TODO: Run tests against other DBMS's
-CONN_STR = "DRIVER={FreeTDS};SERVER=localhost;PORT=1433;UID=sa;PWD=Password123;DATABASE=master;"
+CONN_STR = (
+    "DRIVER={ODBC Driver 17 for SQL Server};"
+    "SERVER=localhost;"
+    "PORT=1433;"
+    "UID=sa;"
+    "PWD=Password123;"
+    "DATABASE=master;"
+)
 
 
 @pytest.fixture
