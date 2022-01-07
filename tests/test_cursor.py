@@ -57,3 +57,16 @@ def test_illegal_fetchmany_raises(cursor):
 def test_illegal_fetchone_raises(cursor):
     with pytest.raises(Error):
         cursor.fetchone()
+
+
+def test_nextset(cursor):
+    sql = "select 1; select 2;"
+    cursor.execute(sql)
+
+    first_set = cursor.fetchall()
+    cursor.nextset()
+    second_set = cursor.fetchall()
+
+    assert len(first_set) == len(second_set) == 1
+    assert first_set[0][0] == 1
+    assert second_set[0][0] == 2

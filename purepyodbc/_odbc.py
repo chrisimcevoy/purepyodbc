@@ -365,6 +365,12 @@ def sql_get_data(
     return value
 
 
+def sql_more_results(cursor: Cursor) -> bool:
+    return_code = ReturnCode(__lib.SQLMoreResults(cursor.handle))
+    check_success(return_code, cursor)
+    return return_code != ReturnCode.SQL_NO_DATA
+
+
 def sql_drivers(
     environment: Environment, ansi: bool = False, include_attributes: bool = False
 ) -> list[str]:

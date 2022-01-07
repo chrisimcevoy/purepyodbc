@@ -102,3 +102,10 @@ class Cursor(Handler[SQLHSTMT]):
             value = _odbc.sql_get_data(self, sql_column_description)
             setattr(row, sql_column_description.name, value)
         return row
+
+    def nextset(self) -> typing.Optional[bool]:
+        if _odbc.sql_more_results(self):
+            self.__update_rowcount()
+            self.__update_sql_column_descriptions()
+            self.__update_column_descriptions()
+            return True

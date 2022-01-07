@@ -70,16 +70,16 @@ class TestCursor:
     @pytest.mark.parametrize(
         "method",
         [
-            "callproc",
+            pytest.param("callproc", marks=pytest.mark.xfail),
             "close",
             "execute",
-            "executemany",
+            pytest.param("executemany", marks=pytest.mark.xfail),
             "fetchone",
             "fetchmany",
             "fetchall",
             "nextset",
-            "setinputsizes",
-            "setoutputsizes",
+            pytest.param("setinputsizes", marks=pytest.mark.xfail),
+            pytest.param("setoutputsizes", marks=pytest.mark.xfail),
         ],
     )
     def test_cursor_has_method(self, cursor: Cursor, method: str):
