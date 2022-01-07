@@ -20,9 +20,6 @@ jobs:
     - name: Install OS dependencies
       run: |
         sudo apt install unixodbc freetds-bin freetds-dev tdsodbc
-        pwd
-        ls
-        ls /usr/lib/x86_64-linux-gnu/odbc
         odbcinst -j
         cat /etc/odbcinst.ini
         sudo odbcinst -i -d -f driver_templates/tds.driver.template
