@@ -25,7 +25,7 @@ jobs:
         ls /usr/lib/x86_64-linux-gnu/odbc
         odbcinst -j
         cat /etc/odbcinst.ini
-        odbcinst -i -d -f driver_templates/tds.driver.template
+        sudo odbcinst -i -d -f driver_templates/tds.driver.template
         cat /etc/odbcinst.ini
     - name: Build the docker-compose stack
       run: docker-compose up -d
