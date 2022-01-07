@@ -24,7 +24,10 @@ jobs:
     - name: Check logs
       run: docker logs sqlserver
     - name: Install OS dependencies
-      run: sudo apt install unixodbc freetds-bin
+      run: |
+        sudo apt install unixodbc freetds-bin
+        odbcinst -j
+        cat /etc/odbcinst.ini
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
