@@ -25,7 +25,7 @@ jobs:
       run: docker logs sqlserver
     - name: Install OS dependencies
       run: |
-        sudo apt install unixodbc freetds-bin tdsodbc
+        sudo apt install unixodbc freetds-bin freetds-dev tdsodbc
         odbcinst -j
         cat /etc/odbcinst.ini
         odbcinst -i -d -f driver_templates/tds.driver.template
