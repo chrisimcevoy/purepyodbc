@@ -2,7 +2,7 @@ from purepyodbc import Error
 
 import pytest
 
-SQL = "select * from sys.tables;"
+SQL = "select * from information_schema.tables;"
 
 
 def test_execute(cursor):

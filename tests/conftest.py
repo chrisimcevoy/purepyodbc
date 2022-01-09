@@ -3,21 +3,19 @@ import pytest
 import purepyodbc
 
 
-# The connection string for the mssql instance running in docker.
-# TODO: Run tests against other DBMS's
-CONN_STR = (
-    "DRIVER={FreeTDS};"
-    "SERVER=localhost;"
-    "PORT=1433;"
-    "UID=sa;"
-    "PWD=Password123;"
-    "DATABASE=master;"
+@pytest.fixture(
+    params=[
+        "DRIVER={FreeTDS};PORT=1433;",  # SQL Server
+        "DRIVER={PostgreSQL};PORT=5432;",  # Postgres
+    ]
 )
+def connection_string(request) -> str:
+    return request.param + "SERVER=localhost;UID=sa;PWD=Password123;"
 
 
 @pytest.fixture
-def connection() -> purepyodbc.Connection:
-    with purepyodbc.connect(CONN_STR) as c:
+def connection(connection_string) -> purepyodbc.Connection:
+    with purepyodbc.connect(connection_string) as c:
         yield c
 
 
@@ -34,8 +32,8 @@ def pyodbc():
 
 
 @pytest.fixture
-def pyodbc_connection(pyodbc):
-    with pyodbc.connect(CONN_STR) as c:
+def pyodbc_connection(pyodbc, connection_string):
+    with pyodbc.connect(connection_string) as c:
         yield c
 
 

@@ -9,3 +9,10 @@ services:
       - SA_PASSWORD=Password123
     ports:
       - "1433:1433"
+  postgres:
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: sa
+      POSTGRES_PASSWORD: Password123
