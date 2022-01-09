@@ -242,7 +242,7 @@ def sql_driver_connect(connection: Connection, connection_string: str) -> None:
         c_connectString = wchar_pointer(UCS_buf(connection_string))
         f = __lib.SQLDriverConnectW
     else:
-        c_connectString = c_char_p(connection_string)
+        c_connectString = c_char_p(connection_string.encode())
         f = __lib.SQLDriverConnect
 
     return_code = f(
@@ -427,6 +427,7 @@ class SqlDataTypeHandling(typing.Generic[T]):
 
 SQL_DATA_TYPE_MAP = {
     SqlDataType.SQL_CHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
+    SqlDataType.SQL_VARCHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
     SqlDataType.SQL_WVARCHAR: SqlDataTypeHandling(
         python_type=str, output_converter=str
     ),
