@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install OS dependencies
       run: |
-        sudo apt install unixodbc freetds-bin freetds-dev tdsodbc
+        sudo apt install unixodbc freetds-bin freetds-dev tdsodbc odbc-postgresql
         odbcinst -j
         cat /etc/odbcinst.ini
         sudo odbcinst -i -d -f driver_templates/tds.driver.template
