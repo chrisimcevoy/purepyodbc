@@ -6,7 +6,7 @@ import purepyodbc
 @pytest.fixture(
     params=[
         "DRIVER={FreeTDS};PORT=1433;",  # SQL Server
-        "DRIVER={PostgreSQL};PORT=5432;",  # Postgres
+        "DRIVER={PostgreSQL Unicode};PORT=5432;",  # Postgres
     ]
 )
 def connection_string(request) -> str:
