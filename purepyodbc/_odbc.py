@@ -236,8 +236,9 @@ def sql_free_handle(handler: Handler) -> None:
     check_success(return_code, handler)
 
 
-def sql_driver_connect(connection: Connection, connection_string: str) -> None:
-    ansi = False
+def sql_driver_connect(
+    connection: Connection, connection_string: str, ansi: bool
+) -> None:
     if not ansi:
         c_connectString = wchar_pointer(UCS_buf(connection_string))
         f = __lib.SQLDriverConnectW

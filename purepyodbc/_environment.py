@@ -29,7 +29,7 @@ class Environment(Handler[SQLHENV]):
     ) -> Connection:
         connection = Connection()
         _odbc.allocate_connection(self, connection)
-        _odbc.sql_driver_connect(connection, connection_string)
+        _odbc.sql_driver_connect(connection, connection_string, ansi=ansi)
         return connection
 
     @property
