@@ -239,12 +239,12 @@ def sql_free_handle(handler: Handler) -> None:
 def sql_driver_connect(
     connection: Connection, connection_string: str, ansi: bool
 ) -> None:
-    if not ansi:
-        c_connectString = wchar_pointer(UCS_buf(connection_string))
-        f = __lib.SQLDriverConnectW
-    else:
+    if ansi:
         c_connectString = c_char_p(connection_string.encode())
         f = __lib.SQLDriverConnect
+    else:
+        c_connectString = wchar_pointer(UCS_buf(connection_string))
+        f = __lib.SQLDriverConnectW
 
     return_code = f(
         connection.handle,
