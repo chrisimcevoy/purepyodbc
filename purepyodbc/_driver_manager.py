@@ -410,7 +410,9 @@ class UnixOdbc(DriverManager):
 
         status, output = getstatusoutput("odbc_config --cflags")
         if status != 0 or not output:
-            raise InterfaceError("Unable to determine unixODBC SQLWCHAR size")
+            raise InterfaceError(
+                f"Unable to determine unixODBC SQLWCHAR size: ({output})"
+            )
         sqlwchar_type = c_wchar if "SQL_WCHART_CONVERT" in output.upper() else c_ushort
         self._sqlwchar_size = sizeof(sqlwchar_type)
 
