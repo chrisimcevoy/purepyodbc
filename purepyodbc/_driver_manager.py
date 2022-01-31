@@ -409,11 +409,11 @@ class UnixOdbc(DriverManager):
         from subprocess import getstatusoutput  # nosec
 
         status, output = getstatusoutput("odbc_config --cflags")
-        if status != 0 or not output:
-            raise InterfaceError(
-                f"Unable to determine unixODBC SQLWCHAR size: ({output})"
-            )
-        sqlwchar_type = c_wchar if "SQL_WCHART_CONVERT" in output.upper() else c_ushort
+        if status == 0 and "SQL_WCHART_CONVERT" in output.upper():
+            sqlwchar_type = c_wchar
+        else:
+            # TODO: We don't know for sure - should we generate a warning?
+            sqlwchar_type = c_ushort
         self._sqlwchar_size = sizeof(sqlwchar_type)
 
     def _to_wchar_pointer(self, s):
