@@ -1,21 +1,17 @@
-from dataclasses import dataclass
-
 from ._errors import ProgrammingError
-from . import _odbc
 from ._cursor import Cursor
 from ._handler import Handler
 from ._enums import HandleType
 from ._typedef import SQLHDBC
 
 
-@dataclass
 class Connection(Handler[SQLHDBC]):
     """Connection objects manage connections to the database.
     Each manages a single ODBC HDBC.
     """
 
     def cursor(self) -> Cursor:
-        cur = Cursor(self)
+        cur = Cursor(self._driver_manager, self)
         return cur
 
     @property
@@ -31,7 +27,7 @@ class Connection(Handler[SQLHDBC]):
         raise NotImplementedError
 
     def close(self) -> None:
-        _odbc.sql_disconnect(self)
+        self._driver_manager.sql_disconnect(self)
         super().close()
 
     def setencoding(self, *args, **kwargs):

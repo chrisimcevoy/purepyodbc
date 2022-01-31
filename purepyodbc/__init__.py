@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 
+from . import _driver_manager
 from ._connection import Connection
 from ._cursor import Cursor
 from ._environment import Environment as _Environment
@@ -15,7 +16,6 @@ from ._errors import (
     ProgrammingError,
     NotSupportedError,
 )
-from . import _odbc
 
 
 apilevel: str = "2.0"
@@ -26,6 +26,9 @@ pooling: bool = True
 threadsafety: int = 1  # TODO: Check threadsafety
 version = "0.0.1.dev0"
 
+__driver_manager: _driver_manager.DriverManager = (
+    _driver_manager.detect_driver_manager()
+)
 __environment: _Environment
 
 
@@ -48,16 +51,16 @@ def connect(
     return connection
 
 
-def drivers(ansi: bool = False, include_attributes: bool = False) -> List[str]:
+def drivers(include_attributes: bool = False) -> List[str]:
     __ensure_environment_created()
-    return _odbc.sql_drivers(
-        __environment, ansi=ansi, include_attributes=include_attributes
+    return __driver_manager.sql_drivers(
+        __environment, include_attributes=include_attributes
     )
 
 
 def __ensure_environment_created():
     global __environment
-    __environment = _Environment(pooling=pooling)
+    __environment = _Environment(driver_manager=__driver_manager, pooling=pooling)
 
 
 __all__ = [

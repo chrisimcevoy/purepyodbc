@@ -1,4 +1,4 @@
-from purepyodbc import Error
+from purepyodbc import Error, ProgrammingError
 
 import pytest
 
@@ -57,6 +57,28 @@ def test_illegal_fetchmany_raises(cursor):
 def test_illegal_fetchone_raises(cursor):
     with pytest.raises(Error):
         cursor.fetchone()
+
+
+def test_emoticons_as_literal(cursor):
+
+    v = "x \U0001F31C z"
+
+    cursor.execute("drop table if exists t1")
+
+    # TODO: something less hacky than a try/except
+    try:
+        # sql server
+        cursor.execute("create table t1(s nvarchar(100))")
+    except ProgrammingError:
+        # postgresql
+        cursor.execute("create table t1(s varchar(100))")
+
+    # TODO: use a parameterised query instead of f-string
+    cursor.execute(f"insert into t1 (s) values (N'{v}')")
+
+    result = cursor.execute("select s from t1").fetchone()[0]
+
+    assert result == v
 
 
 def test_nextset(cursor):

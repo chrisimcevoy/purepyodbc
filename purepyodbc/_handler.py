@@ -1,19 +1,19 @@
 from abc import abstractmethod
-from dataclasses import dataclass, field
 from typing import Generic
 
+from ._driver_manager import DriverManager
 from ._custom_types import TSqlHandle
 from ._typedef import SQLHANDLE
 from ._enums import HandleType
-from . import _odbc
 
 
-@dataclass  # type: ignore
 class Handler(Generic[TSqlHandle]):
     """Python object which references a SQLHANDLE."""
 
-    handle: TSqlHandle = field(init=False, default_factory=SQLHANDLE)
-    _closed: bool = field(init=False, default=False)
+    def __init__(self, driver_manager: DriverManager) -> None:
+        self._closed = False
+        self.handle: TSqlHandle = SQLHANDLE()
+        self._driver_manager: DriverManager = driver_manager
 
     def __enter__(self):
         return self
@@ -29,5 +29,5 @@ class Handler(Generic[TSqlHandle]):
     def close(self) -> None:
         if self._closed:
             return
-        _odbc.sql_free_handle(self)
+        self._driver_manager.sql_free_handle(self)
         self._closed = True

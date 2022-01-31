@@ -1,21 +1,23 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from . import _odbc
+from ._driver_manager import DriverManager, detect_driver_manager
 from ._enums import HandleType, OdbcVersion
 from ._handler import Handler
 from ._connection import Connection
 from ._typedef import SQLHENV
 
 
-@dataclass
 class Environment(Handler[SQLHENV]):
-    pooling: bool
-
-    def __post_init__(self):
-        _odbc.allocate_environment(self)
-        _odbc.set_environment_odbc_version(self, OdbcVersion.SQL_OV_ODBC3_80)
+    def __init__(
+        self, driver_manager: DriverManager = None, pooling: bool = False
+    ) -> None:
+        if driver_manager is None:
+            driver_manager = detect_driver_manager()
+        super().__init__(driver_manager)
+        self._driver_manager.allocate_environment(self)
+        self._driver_manager.set_environment_odbc_version(
+            self, OdbcVersion.SQL_OV_ODBC3_80
+        )
 
     def connection(
         self,
@@ -27,9 +29,11 @@ class Environment(Handler[SQLHENV]):
         attrs_before: dict = None,
         encoding: str = None,
     ) -> Connection:
-        connection = Connection()
-        _odbc.allocate_connection(self, connection)
-        _odbc.sql_driver_connect(connection, connection_string, ansi=ansi)
+        connection = Connection(driver_manager=self._driver_manager)
+        self._driver_manager.allocate_connection(self, connection)
+        self._driver_manager.sql_driver_connect(
+            connection, connection_string, ansi=ansi
+        )
         return connection
 
     @property
