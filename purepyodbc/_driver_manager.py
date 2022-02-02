@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ctypes
 import datetime
-import functools
 import typing
 import sys
 from ctypes import (
@@ -92,7 +91,7 @@ class DriverManager:
             func = getattr(self.cdll, func_name)
             func.restype = c_short
 
-    @functools.cached_property
+    @property
     def _odbc_bytes_per_char(self) -> int:
         """Return the (max) number of bytes per char for the Driver Manager's encoding."""
         if self._odbc_encoding.startswith("utf-8") or self._odbc_encoding.startswith("utf-32"):
