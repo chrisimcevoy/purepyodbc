@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import ctypes
 import datetime
+import functools
 import typing
+import sys
 from ctypes import (
     cdll,
     CDLL,
@@ -50,6 +52,9 @@ from ._enums import (
 from ._typedef import SQLSMALLINT, SQLLEN, SQLULEN
 
 
+DEFAULT_ODBC_ENCODING = "utf-16-le" if sys.byteorder == "little" else "utf-16-be"
+
+
 def detect_driver_manager() -> DriverManager:
     import platform
 
@@ -75,18 +80,41 @@ def detect_driver_manager() -> DriverManager:
 class DriverManager:
     cdll: CDLL
     _sqlwchar_size: int = field(init=False, default=2)
-    _encoding: str = field(init=False, default="utf_16_le")
+    _odbc_encoding: str = field(init=False, default=DEFAULT_ODBC_ENCODING)
+
+    def __post_init__(self):
+        # Needed for 64-bit Windows, otherwise you get ValueErrors on non-zero ReturnCodes
+        for func_name in (
+            # TODO: Specify restype for all ODBC functions
+            "SQLExecDirectW",
+            "SQLFetch",
+        ):
+            func = getattr(self.cdll, func_name)
+            func.restype = c_short
+
+    @functools.cached_property
+    def _odbc_bytes_per_char(self) -> int:
+        """Return the (max) number of bytes per char for the Driver Manager's encoding."""
+        if self._odbc_encoding.startswith("utf-8") or self._odbc_encoding.startswith("utf-32"):
+            return 4
+        elif self._odbc_encoding.startswith("utf-16"):
+            return 2
+        raise NotSupportedError(f"\"{self._odbc_encoding}\" is not supported.")
+
+    def _count_odbc_encoded_bytes(self, s) -> int:
+        """Return the number of bytes required in the DriverManager's encoding."""
+        return int(len(self._odbc_encode(s)) / self._odbc_bytes_per_char)
 
     def _to_char_pointer(self, s):
         if isinstance(s, str):
-            s = self._ucs_encode(s)
+            s = self._odbc_encode(s)
         return c_char_p(s)
 
     def _to_wchar_pointer(self, s):
         return c_wchar_p(s)
 
-    def _ucs_encode(self, s):
-        return s
+    def _odbc_encode(self, s):
+        return s.encode(self._odbc_encoding)
 
     def _to_buffer(self, init, size=None):
         return create_unicode_buffer(init, size)
@@ -160,9 +188,7 @@ class DriverManager:
 
     def sql_exec_direct(self, cursor: Cursor, query_string: str) -> None:
         c_query_string = self._to_wchar_pointer(query_string)
-        # TODO: This length assumes that the driver manager speaks utf16...
-        #  divide by 2 won't work for utf-32, utf-8...
-        length = int(len(self._ucs_encode(query_string)) / 2)
+        length = self._count_odbc_encoded_bytes(query_string)
         return_code = self.cdll.SQLExecDirectW(cursor.handle, c_query_string, length)
         self.check_success(return_code, cursor)
 
@@ -418,18 +444,8 @@ class UnixOdbc(DriverManager):
 
     def _to_wchar_pointer(self, s):
         if self._sqlwchar_size == 2:
-            return c_char_p(self._ucs_encode(s))
+            return c_char_p(self._odbc_encode(s))
         return super()._to_wchar_pointer(s)
-
-    def _ucs_encode(self, s):
-        if self._sqlwchar_size == 2:
-            return s.encode(self._encoding)
-        return super()._ucs_encode(s)
-
-    def _ucs_decode(self, buffer):
-        if self._sqlwchar_size == 2:
-            return buffer.raw.decode(self._encoding)
-        return buffer.value
 
     def _to_buffer(self, init, size=None):
         if self._sqlwchar_size == 2:
@@ -438,7 +454,7 @@ class UnixOdbc(DriverManager):
 
     def _from_buffer(self, buffer):
         if self._sqlwchar_size == 2:
-            return buffer.raw.decode(self._encoding).rstrip("\x00")
+            return buffer.raw.decode(self._odbc_encoding).rstrip("\x00")
         return super()._from_buffer(buffer)
 
 

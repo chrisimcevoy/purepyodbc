@@ -1,16 +1,31 @@
+import platform
+
 import pytest
 
 import purepyodbc
 
 
+PLATFORM = platform.system()
+
+
 @pytest.fixture(
     params=[
-        "DRIVER={FreeTDS};PORT=1433;",  # SQL Server
-        "DRIVER={PostgreSQL Unicode};PORT=5432;",  # Postgres
+        "DRIVER={ODBC Driver 17 for SQL Server};PORT=1433;",
+        "DRIVER={SQL Server};PORT=1433;",
+        "DRIVER={FreeTDS};PORT=1433;",
+        "DRIVER={PostgreSQL Unicode};PORT=5432;",
     ]
 )
 def connection_string(request) -> str:
-    return request.param + "SERVER=localhost;UID=sa;PWD=Password123;"
+    conn_str_fragment = request.param
+    if PLATFORM == 'Linux':
+        if "{SQL Server}" in conn_str_fragment:
+            pytest.skip("MDAC SQL Server Driver not supported on Linux.")
+    elif PLATFORM == "Windows":
+        if "{FreeTDS}" in conn_str_fragment:
+            pytest.skip("FreeTDS not supported on Windows")
+
+    return conn_str_fragment + "SERVER=localhost;UID=sa;PWD=Password123;"
 
 
 @pytest.fixture
