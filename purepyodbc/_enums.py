@@ -17,6 +17,7 @@ class SqlDataType(Enum):
     # SQL_WLONGVARCHAR = -10
     SQL_CHAR = 1
     SQL_INTEGER = 4
+    SQL_SMALLINT = 5
     SQL_VARCHAR = 12
     SQL_TYPE_TIMESTAMP = 93
 

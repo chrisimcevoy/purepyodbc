@@ -98,7 +98,23 @@ class Cursor(Handler[SQLHSTMT]):
             self.__post_execute()
             return True
 
-    def tables(self, table=None, catalog=None, schema=None, table_type=None) -> Cursor:
+    def tables(
+        self,
+        table: typing.Optional[str] = None,
+        catalog: typing.Optional[str] = None,
+        schema: typing.Optional[str] = None,
+        table_type: typing.Optional[str] = None,
+    ) -> Cursor:
         self._driver_manager.sql_tables(self, catalog, schema, table, table_type)
+        self.__post_execute(lowercase=True)
+        return self
+
+    def procedures(
+        self,
+        procedure: typing.Optional[str] = None,
+        catalog: typing.Optional[str] = None,
+        schema: typing.Optional[str] = None,
+    ) -> Cursor:
+        self._driver_manager.sql_procedures(self, procedure, catalog, schema)
         self.__post_execute(lowercase=True)
         return self

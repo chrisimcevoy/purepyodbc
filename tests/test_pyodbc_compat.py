@@ -53,6 +53,30 @@ def test_cursor_tables(cursor, pyodbc_cursor):
         ), f"{attr} not equal (expected: {pr_value}, got {r_value})"
 
 
+def test_cursor_procedures(cursor, pyodbc_cursor):
+    cursor.procedures()
+    r = cursor.fetchone()
+
+    pyodbc_cursor.procedures()
+    pr = pyodbc_cursor.fetchone()
+
+    attrs = [
+        "procedure_cat",
+        "procedure_schem",
+        "procedure_name",
+        "num_input_params",
+        "num_output_params",
+        "num_result_sets",
+        "remarks",
+        "procedure_type",
+    ]
+
+    for attr in attrs:
+        r_value = getattr(r, attr)
+        pr_value = getattr(pr, attr)
+        assert r_value == pr_value
+
+
 def test_cursor_fetchone(cursor, pyodbc_cursor):
 
     a = cursor.execute(sql).fetchone()

@@ -563,6 +563,20 @@ class DriverManager:
             else:
                 raise Error(f"Unhandled return code: {return_code}")
 
+    def sql_procedures(self, cursor: Cursor, procedure, catalog, schema):
+        return_code = ReturnCode(
+            self.cdll.SQLProcedures(
+                cursor.handle,
+                procedure,
+                _constants.SQL_NTS,
+                catalog,
+                _constants.SQL_NTS,
+                schema,
+                _constants.SQL_NTS,
+            )
+        )
+        self.check_success(return_code, cursor)
+
 
 @dataclass
 class WindowsDriverManager(DriverManager):
@@ -632,5 +646,8 @@ SQL_DATA_TYPE_MAP = {
     SqlDataType.SQL_TINYINT: SqlDataTypeHandling(python_type=int, output_converter=int),
     SqlDataType.SQL_TYPE_TIMESTAMP: SqlDataTypeHandling(
         python_type=datetime.datetime, output_converter=datetime.datetime.fromisoformat
+    ),
+    SqlDataType.SQL_SMALLINT: SqlDataTypeHandling(
+        python_type=int, output_converter=int
     ),
 }
