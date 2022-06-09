@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union, TYPE_CHECKING
 
+from . import _constants
+import purepyodbc
 from ._dto import SqlColumnDescription
 
 if TYPE_CHECKING:
@@ -41,6 +43,7 @@ from ._errors import (
 from ._enums import (
     ReturnCode,
     HandleType,
+    InfoType,
     OdbcVersion,
     EnvironmentAttributeType,
     DriverCompletion,
@@ -84,9 +87,92 @@ class DriverManager:
     def __post_init__(self):
         # Needed for 64-bit Windows, otherwise you get ValueErrors on non-zero ReturnCodes
         for func_name in (
-            # TODO: Specify restype for all ODBC functions
+            "SQLAllocHandle",
+            "SQLBindParameter",
+            "SQLBindCol",
+            "SQLBrowseConnect",
+            "SQLBrowseConnectW",
+            "SQLCloseCursor",
+            "SQLColAttribute",
+            "SQLColAttributeW",
+            "SQLColAttributes",
+            "SQLColAttributesW",
+            "SQLColumns",
+            "SQLColumnsW",
+            "SQLConnect",
+            "SQLConnectW",
+            "SQLDataSources",
+            "SQLDataSourcesW",
+            "SQLDescribeCol",
+            "SQLDescribeColW",
+            "SQLDescribeParam",
+            "SQLDisconnect",
+            "SQLDriverConnect",
+            "SQLDriverConnectW",
+            "SQLDrivers",
+            "SQLDriversW",
+            "SQLEndTran",
+            "SQLExecDirect",
             "SQLExecDirectW",
+            "SQLExecute",
             "SQLFetch",
+            "SQLFetchScroll",
+            "SQLForeignKeys",
+            "SQLForeignKeysW",
+            "SQLFreeHandle",
+            "SQLFreeStmt",
+            "SQLGetConnectAttr",
+            "SQLGetConnectAttrW",
+            "SQLGetConnectOption",
+            "SQLGetConnectOptionW",
+            "SQLGetCursorName",
+            "SQLGetCursorNameW",
+            "SQLGetData",
+            "SQLGetDescField",
+            "SQLGetDescFieldW",
+            "SQLGetDescRec",
+            "SQLGetDescRecW",
+            "SQLGetDiagField",
+            "SQLGetDiagFieldW",
+            "SQLGetDiagRec",
+            "SQLGetDiagRecW",
+            "SQLGetInfo",
+            "SQLGetInfoW",
+            "SQLGetTypeInfo",
+            "SQLGetTypeInfoW",
+            "SQLMoreResults",
+            "SQLNativeSql",
+            "SQLNativeSqlW",
+            "SQLNumParams",
+            "SQLNumResultCols",
+            "SQLPrepare",
+            "SQLPrepareW",
+            "SQLPrimaryKeys",
+            "SQLPrimaryKeysW",
+            "SQLProcedureColumns",
+            "SQLProcedureColumnsW",
+            "SQLProcedures",
+            "SQLProceduresW",
+            "SQLRowCount",
+            "SQLSetConnectAttr",
+            "SQLSetConnectAttrW",
+            "SQLSetConnectOption",
+            "SQLSetConnectOptionW",
+            "SQLSetCursorName",
+            "SQLSetCursorNameW",
+            "SQLSetDescField",
+            "SQLSetDescFieldW",
+            "SQLSetEnvAttr",
+            "SQLSetStmtAttr",
+            "SQLSetStmtAttrW",
+            "SQLSpecialColumns",
+            "SQLSpecialColumnsW",
+            "SQLStatistics",
+            "SQLStatisticsW",
+            "SQLTablePrivileges",
+            "SQLTablePrivilegesW",
+            "SQLTables",
+            "SQLTablesW",
         ):
             func = getattr(self.cdll, func_name)
             func.restype = c_short
@@ -94,11 +180,13 @@ class DriverManager:
     @property
     def _odbc_bytes_per_char(self) -> int:
         """Return the (max) number of bytes per char for the Driver Manager's encoding."""
-        if self._odbc_encoding.startswith("utf-8") or self._odbc_encoding.startswith("utf-32"):
+        if self._odbc_encoding.startswith("utf-8") or self._odbc_encoding.startswith(
+            "utf-32"
+        ):
             return 4
         elif self._odbc_encoding.startswith("utf-16"):
             return 2
-        raise NotSupportedError(f"\"{self._odbc_encoding}\" is not supported.")
+        raise NotSupportedError(f'"{self._odbc_encoding}" is not supported.')
 
     def _count_odbc_encoded_bytes(self, s) -> int:
         """Return the number of bytes required in the DriverManager's encoding."""
@@ -205,7 +293,10 @@ class DriverManager:
         return num_cols.value
 
     def sql_describe_col(
-        self, cursor: Cursor, column_number: int
+        self,
+        cursor: Cursor,
+        column_number: int,
+        lowercase: typing.Optional[bool] = None,
     ) -> SqlColumnDescription:
         buffer_length = 1024
         column_name = self._to_buffer(buffer_length)
@@ -232,8 +323,12 @@ class DriverManager:
         sql_type = SqlDataType(data_type.value)
         python_type = SQL_DATA_TYPE_MAP[sql_type].python_type
 
+        name = self._from_buffer(column_name)
+        if lowercase is True or purepyodbc.lowercase is True:
+            name = name.lower()
+
         column_description = SqlColumnDescription(
-            self._from_buffer(column_name),
+            name,
             sql_type,
             python_type,
             column_size.value,
@@ -292,6 +387,26 @@ class DriverManager:
         self.check_success(return_code, cursor)
         return return_code != ReturnCode.SQL_NO_DATA
 
+    def sql_get_info(self, connection: Connection, info_type: InfoType) -> typing.Any:
+
+        buffer_size = 4096
+        buffer = self._to_buffer(buffer_size)
+        string_len = SQLSMALLINT()
+
+        return_code = ReturnCode(
+            self.cdll.SQLGetInfoW(
+                connection.handle,
+                info_type.value,
+                buffer,
+                buffer_size,
+                byref(string_len),
+            )
+        )
+
+        self.check_success(return_code, connection)
+
+        return self._from_buffer(buffer)
+
     def sql_drivers(
         self, environment: Environment, include_attributes: bool = False
     ) -> list[str]:
@@ -331,6 +446,40 @@ class DriverManager:
             drivers.append(driver)
             direction = SqlFetchType.SQL_FETCH_NEXT
         return drivers
+
+    def sql_tables(
+        self,
+        cursor: Cursor,
+        catalog: typing.Optional[str],
+        schema: typing.Optional[str],
+        table: typing.Optional[str],
+        table_type: typing.Optional[str],
+    ):
+        def get_pointer_and_len(v) -> tuple[Union[c_wchar_p, ctypes.c_void_p], int]:
+            if v is None:
+                return ctypes.c_void_p(), _constants.SQL_NTS
+            # Note that pyodbc just passes SQL_NTS for everything
+            # Worth bearing in mind if counting the bytes gives problems
+            # or if we think we're just wasting cycles here (performance).
+            return self._to_wchar_pointer(v), self._count_odbc_encoded_bytes(v)
+
+        c_catalog, c_catalog_len = get_pointer_and_len(catalog)
+        c_schema, c_schema_len = get_pointer_and_len(schema)
+        c_table, c_table_len = get_pointer_and_len(table)
+        c_table_type, c_table_type_len = get_pointer_and_len(table_type)
+
+        return_code = self.cdll.SQLTables(
+            cursor.handle,
+            c_catalog,
+            c_catalog_len,
+            c_schema,
+            c_schema_len,
+            c_table,
+            c_table_len,
+            c_table_type,
+            c_table_type_len,
+        )
+        self.check_success(return_code, cursor)
 
     def check_success(
         self, return_code: Union[int, ReturnCode], handler: Handler

@@ -1,7 +1,7 @@
 from ._errors import ProgrammingError
 from ._cursor import Cursor
 from ._handler import Handler
-from ._enums import HandleType
+from ._enums import HandleType, InfoType
 from ._typedef import SQLHDBC
 
 
@@ -13,6 +13,13 @@ class Connection(Handler[SQLHDBC]):
     def cursor(self) -> Cursor:
         cur = Cursor(self._driver_manager, self)
         return cur
+
+    @property
+    def searchescape(self) -> str:
+        """The escape character to be used with catalog functions."""
+        return self._driver_manager.sql_get_info(
+            self, InfoType.SQL_SEARCH_PATTERN_ESCAPE
+        )
 
     @property
     def handle_type(self) -> HandleType:

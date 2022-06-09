@@ -22,6 +22,10 @@ def test_connection_attributes(connection, pyodbc_connection):
     assert get_attrs(connection) == get_attrs(pyodbc_connection)
 
 
+def test_connection_searchescape(connection, pyodbc_connection):
+    assert connection.searchescape == pyodbc_connection.searchescape
+
+
 @pytest.mark.xfail
 def test_cursor_attributes(cursor, pyodbc_cursor):
     assert get_attrs(cursor) == get_attrs(pyodbc_cursor)
@@ -31,6 +35,22 @@ def test_cursor_description(cursor, pyodbc_cursor):
     cursor.execute(sql)
     pyodbc_cursor.execute(sql)
     assert cursor.description == pyodbc_cursor.description
+
+
+def test_cursor_tables(cursor, pyodbc_cursor):
+    cursor.tables(schema="%")
+    r = cursor.fetchone()
+    pyodbc_cursor.tables(schema="%")
+    pr = pyodbc_cursor.fetchone()
+    # TODO: Fix rowcount for Cursor.tables()
+    # assert cursor.rowcount == pyodbc_cursor.rowcount
+    attrs = ["table_cat", "table_schem", "table_name", "table_type", "remarks"]
+    for attr in attrs:
+        r_value = getattr(r, attr)
+        pr_value = getattr(pr, attr)
+        assert (
+            r_value == pr_value
+        ), f"{attr} not equal (expected: {pr_value}, got {r_value})"
 
 
 def test_cursor_fetchone(cursor, pyodbc_cursor):

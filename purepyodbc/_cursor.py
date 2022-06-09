@@ -39,26 +39,21 @@ class Cursor(Handler[SQLHSTMT]):
     def handle_type(self) -> HandleType:
         return HandleType.SQL_HANDLE_STMT
 
-    def execute(self, query_string: str) -> Cursor:
-        self._driver_manager.sql_exec_direct(self, query_string)
-        self.__update_rowcount()
-        self.__update_sql_column_descriptions()
-        self.__update_column_descriptions()
-        return self
-
-    def __update_rowcount(self) -> None:
+    def __post_execute(self, lowercase: bool = False) -> None:
+        """Update rowcount and column descriptions."""
         self.__rowcount = self._driver_manager.sql_row_count(self)
-
-    def __update_sql_column_descriptions(self) -> None:
         self.__sql_column_descriptions = tuple(
-            self._driver_manager.sql_describe_col(self, i + 1)
+            self._driver_manager.sql_describe_col(self, i + 1, lowercase)
             for i in range(self.columncount)
         )
-
-    def __update_column_descriptions(self) -> None:
         self.__column_descriptions = tuple(
             x.to_column_description() for x in self.__sql_column_descriptions
         )
+
+    def execute(self, query_string: str) -> Cursor:
+        self._driver_manager.sql_exec_direct(self, query_string)
+        self.__post_execute()
+        return self
 
     def fetchmany(self, size: typing.Optional[int] = None) -> typing.List[Row]:
         """Fetch the next set of rows of a query result.
@@ -100,7 +95,10 @@ class Cursor(Handler[SQLHSTMT]):
 
     def nextset(self) -> typing.Optional[bool]:
         if self._driver_manager.sql_more_results(self):
-            self.__update_rowcount()
-            self.__update_sql_column_descriptions()
-            self.__update_column_descriptions()
+            self.__post_execute()
             return True
+
+    def tables(self, table=None, catalog=None, schema=None, table_type=None) -> Cursor:
+        self._driver_manager.sql_tables(self, catalog, schema, table, table_type)
+        self.__post_execute(lowercase=True)
+        return self

@@ -18,7 +18,7 @@ PLATFORM = platform.system()
 )
 def connection_string(request) -> str:
     conn_str_fragment = request.param
-    if PLATFORM == 'Linux':
+    if PLATFORM == "Linux":
         if "{SQL Server}" in conn_str_fragment:
             pytest.skip("MDAC SQL Server Driver not supported on Linux.")
     elif PLATFORM == "Windows":

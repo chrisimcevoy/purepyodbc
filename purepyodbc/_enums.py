@@ -55,6 +55,14 @@ class HandleType(Enum):
     # SQL_HANDLE_DBC_INFO_TOKEN = ?
 
 
+class InfoType(Enum):
+    """Information types supported by SQLGetInfo.
+    https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlgetinfo-function?view=sql-server-ver16#information-types
+    """
+
+    SQL_SEARCH_PATTERN_ESCAPE = 14
+
+
 class SqlColumnAttrType(Enum):
     SQL_COLUMN_NAME = 1
     SQL_COLUMN_TYPE = 2

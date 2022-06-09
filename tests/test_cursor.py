@@ -112,3 +112,13 @@ def test_nextset(cursor):
     assert len(first_set) == len(second_set) == 1
     assert first_set[0][0] == 1
     assert second_set[0][0] == 2
+
+
+def test_tables(cursor):
+    cursor.tables(schema="%")
+    r = cursor.fetchone()
+    assert hasattr(r, "table_cat")
+    assert hasattr(r, "table_schem")
+    assert hasattr(r, "table_name")
+    assert hasattr(r, "table_type")
+    assert hasattr(r, "remarks")
