@@ -4,10 +4,9 @@ from ._driver_manager import DriverManager, detect_driver_manager
 from ._enums import HandleType, OdbcVersion
 from ._handler import Handler
 from ._connection import Connection
-from ._typedef import SQLHENV
 
 
-class Environment(Handler[SQLHENV]):
+class Environment(Handler):
     def __init__(
         self, driver_manager: DriverManager = None, pooling: bool = False
     ) -> None:

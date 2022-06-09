@@ -1,4 +1,5 @@
 import platform
+import typing
 
 import pytest
 
@@ -29,13 +30,15 @@ def connection_string(request) -> str:
 
 
 @pytest.fixture
-def connection(connection_string) -> purepyodbc.Connection:
+def connection(
+    connection_string,
+) -> typing.Generator[purepyodbc.Connection, None, None]:
     with purepyodbc.connect(connection_string) as c:
         yield c
 
 
 @pytest.fixture
-def cursor(connection) -> purepyodbc.Cursor:
+def cursor(connection) -> typing.Generator[purepyodbc.Cursor, None, None]:
     with connection.cursor() as c:
         yield c
 

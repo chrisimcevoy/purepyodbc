@@ -1,18 +1,16 @@
 from abc import abstractmethod
-from typing import Generic
 
 from ._driver_manager import DriverManager
-from ._custom_types import TSqlHandle
 from ._typedef import SQLHANDLE
 from ._enums import HandleType
 
 
-class Handler(Generic[TSqlHandle]):
+class Handler:
     """Python object which references a SQLHANDLE."""
 
     def __init__(self, driver_manager: DriverManager) -> None:
         self._closed = False
-        self.handle: TSqlHandle = SQLHANDLE()
+        self.handle = SQLHANDLE()
         self._driver_manager: DriverManager = driver_manager
 
     def __enter__(self):

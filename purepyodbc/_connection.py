@@ -2,10 +2,9 @@ from ._errors import ProgrammingError
 from ._cursor import Cursor
 from ._handler import Handler
 from ._enums import HandleType, InfoType
-from ._typedef import SQLHDBC
 
 
-class Connection(Handler[SQLHDBC]):
+class Connection(Handler):
     """Connection objects manage connections to the database.
     Each manages a single ODBC HDBC.
     """

@@ -7,20 +7,21 @@ from ._dto import ColumnDescription, SqlColumnDescription
 from ._row import Row
 from ._enums import HandleType
 from ._handler import Handler
-from ._typedef import SQLHSTMT
 
 if typing.TYPE_CHECKING:
     from ._connection import Connection
 
 
-class Cursor(Handler[SQLHSTMT]):
+class Cursor(Handler):
     def __init__(self, driver_manager: DriverManager, connection: Connection) -> None:
         super().__init__(driver_manager)
         self.connection = connection
         self.arraysize = 1
         self.__rowcount = -1
-        self.__column_descriptions: typing.Tuple[ColumnDescription] = tuple()
-        self.__sql_column_descriptions: typing.Tuple[SqlColumnDescription] = tuple()
+        self.__column_descriptions: typing.Tuple[ColumnDescription, ...] = tuple()
+        self.__sql_column_descriptions: typing.Tuple[
+            SqlColumnDescription, ...
+        ] = tuple()
         self._driver_manager.allocate_statement(self)
 
     @property
@@ -61,7 +62,7 @@ class Cursor(Handler[SQLHSTMT]):
         """
 
         size = self.arraysize if size is None else size
-        rows = []
+        rows: list[Row] = []
 
         if size:
             while len(rows) < size:
@@ -97,6 +98,7 @@ class Cursor(Handler[SQLHSTMT]):
         if self._driver_manager.sql_more_results(self):
             self.__post_execute()
             return True
+        return None
 
     def tables(
         self,

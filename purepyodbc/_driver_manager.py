@@ -61,7 +61,8 @@ def detect_driver_manager() -> DriverManager:
     import platform
 
     if platform.system() == "Windows":
-        return WindowsDriverManager(cdll=ctypes.windll.odbc32)
+        odbc32 = ctypes.windll.odbc32  # type: ignore[attr-defined]
+        return WindowsDriverManager(cdll=odbc32)
     else:
         paths = (
             Path("/usr/lib64"),
@@ -72,9 +73,9 @@ def detect_driver_manager() -> DriverManager:
         )
         for path in paths:
             for unixodbc_so in reversed(sorted(path.glob("libodbc.so*"))):
-                return UnixOdbc(cdll=cdll.LoadLibrary(unixodbc_so))
+                return UnixOdbc(cdll=cdll.LoadLibrary(str(unixodbc_so)))
             for iodbc_so in path.glob("libiodbc.so*"):
-                return Iodbc(cdll=cdll.LoadLibrary(iodbc_so))
+                return Iodbc(cdll=cdll.LoadLibrary(str(iodbc_so)))
         raise FileNotFoundError("No supported driver manager detected!")
 
 
@@ -206,7 +207,7 @@ class DriverManager:
     def _to_buffer(self, init, size=None):
         return create_unicode_buffer(init, size)
 
-    def _from_buffer(self, buffer):
+    def _from_buffer(self, buffer) -> str:
         return buffer.value
 
     def allocate_environment(self, environment: Environment) -> None:
@@ -374,11 +375,13 @@ class DriverManager:
 
         raw_value = self._from_buffer(buffer)
 
-        handling = SQL_DATA_TYPE_MAP.get(column_description.data_type, None)
-        if handling is None:
+        try:
+            handling = SQL_DATA_TYPE_MAP[column_description.data_type]
+        except KeyError:
             raise InterfaceError(
                 f"No output converter for SQL data type {column_description.data_type.name}"
             )
+
         value = handling.output_converter(raw_value)
         return value
 
@@ -436,12 +439,12 @@ class DriverManager:
 
             driver = self._from_buffer(driver_description)
             if include_attributes:
-                attrs = self._from_buffer(driver_attributes)
+                raw_attrs = self._from_buffer(driver_attributes)
                 # TODO: Each key-value driver attribute pair is separated by a null byte.
                 #  Should we do something else eg newline or split?
                 # attrs = attrs.replace('\x00', '\n')
                 # attrs = attrs.replace('\x00', ',')
-                attrs = attrs.split("\x00")
+                attrs = raw_attrs.split("\x00")
                 driver += f" {attrs}"
             drivers.append(driver)
             direction = SqlFetchType.SQL_FETCH_NEXT
@@ -501,7 +504,7 @@ class DriverManager:
         message = self._to_buffer(1024 * 4)
         native_error = c_int()
         buffer_len = c_short()
-        err_list = []
+        err_list: typing.List[typing.Tuple[str, str, int]] = []
 
         while True:
             err_number = len(err_list) + 1
@@ -614,7 +617,7 @@ class UnixOdbc(DriverManager):
             return create_string_buffer(init, size)
         return super()._to_buffer(init, size)
 
-    def _from_buffer(self, buffer):
+    def _from_buffer(self, buffer) -> str:
         if self._sqlwchar_size == 2:
             return buffer.raw.decode(self._odbc_encoding).rstrip("\x00")
         return super()._from_buffer(buffer)
@@ -633,7 +636,7 @@ class SqlDataTypeHandling(typing.Generic[T]):
     output_converter: typing.Callable[[str], T]
 
 
-SQL_DATA_TYPE_MAP = {
+SQL_DATA_TYPE_MAP: typing.Dict[SqlDataType, SqlDataTypeHandling] = {
     SqlDataType.SQL_CHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
     SqlDataType.SQL_VARCHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
     SqlDataType.SQL_WVARCHAR: SqlDataTypeHandling(
