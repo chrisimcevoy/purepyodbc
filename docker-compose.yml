@@ -1,4 +1,8 @@
-version: '3.4'
+version: '3.7'
+
+networks:
+  default:
+    name: purepyodbc
 
 services:
   sqlserver:
@@ -11,6 +15,7 @@ services:
       - "1433:1433"
   postgres:
     image: postgres:latest
+    container_name: postgres
     ports:
       - 5432:5432
     environment:
