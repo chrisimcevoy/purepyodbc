@@ -1,7 +1,7 @@
 build==0.7.0
 pre-commit==2.16.0
 #TODO Add pyodbc when it supports 3.11 - https://github.com/mkleehammer/pyodbc/issues/917
-pyodbc==4.0.32; platform_python_implementation != "PyPy" or python_version < '3.11'
+pyodbc==4.0.32; platform_python_implementation != "PyPy" and python_version < '3.11'
 pytest==6.2.5
 tox==3.24.5
 twine==3.7.1
