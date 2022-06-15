@@ -464,14 +464,14 @@ class DriverManager:
             # Note that pyodbc just passes SQL_NTS for everything
             # Worth bearing in mind if counting the bytes gives problems
             # or if we think we're just wasting cycles here (performance).
-            return self._to_wchar_pointer(v), self._count_odbc_encoded_bytes(v)
+            return self._to_wchar_pointer(v), len(v)
 
         c_catalog, c_catalog_len = get_pointer_and_len(catalog)
         c_schema, c_schema_len = get_pointer_and_len(schema)
         c_table, c_table_len = get_pointer_and_len(table)
         c_table_type, c_table_type_len = get_pointer_and_len(table_type)
 
-        return_code = self.cdll.SQLTables(
+        return_code = self.cdll.SQLTablesW(
             cursor.handle,
             c_catalog,
             c_catalog_len,
@@ -576,6 +576,52 @@ class DriverManager:
                 _constants.SQL_NTS,
                 schema,
                 _constants.SQL_NTS,
+            )
+        )
+        self.check_success(return_code, cursor)
+
+    def sql_foreign_keys(
+        self,
+        cursor: Cursor,
+        table,
+        catalog,
+        schema,
+        foreignTable,
+        foreignCatalog,
+        foreignSchema,
+    ):
+        """https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlforeignkeys-function"""
+
+        def get_pointer_and_len(v) -> tuple[Union[c_wchar_p, ctypes.c_void_p], int]:
+            if v is None:
+                return ctypes.c_void_p(), _constants.SQL_NTS
+            # Note that pyodbc just passes SQL_NTS for everything
+            # Worth bearing in mind if counting the bytes gives problems
+            # or if we think we're just wasting cycles here (performance).
+            return self._to_wchar_pointer(v), len(v)
+
+        catalog, catalog_len = get_pointer_and_len(catalog)
+        schema, schema_len = get_pointer_and_len(schema)
+        table, table_len = get_pointer_and_len(table)
+        foreignCatalog, foreignCatalog_len = get_pointer_and_len(foreignCatalog)
+        foreignSchema, foreignSchema_len = get_pointer_and_len(foreignSchema)
+        foreignTable, foreignTable_len = get_pointer_and_len(foreignTable)
+
+        return_code = ReturnCode(
+            self.cdll.SQLForeignKeysW(
+                cursor.handle,
+                catalog,
+                catalog_len,
+                schema,
+                schema_len,
+                table,
+                table_len,
+                foreignCatalog,
+                foreignCatalog_len,
+                foreignSchema,
+                foreignSchema_len,
+                foreignTable,
+                foreignTable_len,
             )
         )
         self.check_success(return_code, cursor)

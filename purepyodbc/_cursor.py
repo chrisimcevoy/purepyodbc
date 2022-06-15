@@ -120,3 +120,18 @@ class Cursor(Handler):
         self._driver_manager.sql_procedures(self, procedure, catalog, schema)
         self.__post_execute(lowercase=True)
         return self
+
+    def foreignKeys(
+        self,
+        table: typing.Optional[str] = None,
+        catalog: typing.Optional[str] = None,
+        schema: typing.Optional[str] = None,
+        foreignTable: typing.Optional[str] = None,
+        foreignCatalog: typing.Optional[str] = None,
+        foreignSchema: typing.Optional[str] = None,
+    ) -> Cursor:
+        self._driver_manager.sql_foreign_keys(
+            self, table, catalog, schema, foreignTable, foreignCatalog, foreignSchema
+        )
+        self.__post_execute(lowercase=True)
+        return self
