@@ -16,7 +16,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
-    - name: Install OS dependencies
+
+    # Begin Ubuntu-specific steps
+    - name: Install ODBC Drivers
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt install unixodbc freetds-bin freetds-dev tdsodbc odbc-postgresql
@@ -27,11 +29,28 @@ jobs:
         sudo odbcinst -i -d -f driver_templates/pgsql.driver.template
         cat /etc/odbcinst.ini
     - name: Build the docker-compose stack
+      if: matrix.os == 'ubuntu-latest'
       run: docker-compose up -d
     - name: Check running containers
+      if: matrix.os == 'ubuntu-latest'
       run: docker ps -a
     - name: Check logs
+      if: matrix.os == 'ubuntu-latest'
       run: docker logs sqlserver
+    # End Ubuntu-specific steps
+
+    # Begin Windows/macOS steps
+    - name: Install SQL Server (Windows & macOS)
+      if: matrix.os != 'ubuntu-latest'
+      uses: potatoqualitee/mssqlsuite@v1.5.1
+      with:
+        install: sqlengine
+        version: 2019
+        sa-password: Password123
+        show-log: true
+        collation: Latin1_General_BIN
+    # End Windows/macOS steps
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
