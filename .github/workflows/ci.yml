@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  ubuntu-tests:
+  purepyodbc-ci:
     strategy:
       fail-fast: false
       matrix:
@@ -48,7 +48,7 @@ jobs:
         version: 2019
         sa-password: Password123
         show-log: true
-        collation: Latin1_General_BIN
+#        collation: Latin1_General_BIN
     # End Windows/macOS steps
 
     - name: Set up Python ${{ matrix.python-version }}
