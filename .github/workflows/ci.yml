@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Begin Ubuntu-specific steps
+    # Begin Ubuntu steps
     - name: Install ODBC Drivers
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -37,7 +37,7 @@ jobs:
     - name: Check logs
       if: matrix.os == 'ubuntu-latest'
       run: docker logs sqlserver
-    # End Ubuntu-specific steps
+    # End Ubuntu steps
 
     # Begin Windows/macOS steps
     - name: Install SQL Server (Windows & macOS)
@@ -48,8 +48,23 @@ jobs:
         version: 2019
         sa-password: Password123
         show-log: true
-#        collation: Latin1_General_BIN
+        #collation: Latin1_General_BIN
+    - name: Install PostgreSQL (Windows & macOS)
+      if: matrix.os != 'ubuntu-latest'
+      uses: ikalnytskyi/action-setup-postgres@v2
+      with:
+        username: sa
+        password: Password123
+        #database: test
+        #port: "34837"
     # End Windows/macOS steps
+
+    # Begin Windows steps
+    - name: Install PosgreSQL Driver (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install --verbose psqlodbc
+    # End Windows steps
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
