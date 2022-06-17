@@ -1,3 +1,5 @@
+import platform
+
 from purepyodbc import Error, ProgrammingError
 
 import pytest
@@ -80,6 +82,11 @@ def test_emoticons_as_literal(cursor, connection_string):
     if "freetds" in connection_string.lower():
         # https://github.com/FreeTDS/freetds/issues/317
         check_freetds_version()
+
+    if platform.platform() == "Windows":
+        if "postgres" in connection_string.lower():
+            # https://stackoverflow.com/a/38487921/5567657
+            cursor.execute("SET client_encoding TO 'UTF8';")
 
     v = "x \U0001F31C z"
 
