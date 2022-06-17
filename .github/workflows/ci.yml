@@ -55,7 +55,7 @@ jobs:
       with:
         username: sa
         password: Password123
-        #database: test
+        database: sa
         #port: "34837"
     # End Windows/macOS steps
 
