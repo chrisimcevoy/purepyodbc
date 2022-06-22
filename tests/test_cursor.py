@@ -87,6 +87,12 @@ def test_emoticons_as_literal(cursor, connection_string):
         if "postgres" in connection_string.lower():
             # https://stackoverflow.com/a/38487921/5567657
             cursor.execute("SET client_encoding TO 'UTF8';")
+            cursor.execute("SHOW server_encoding;")
+            server_enc = cursor.fetchone().client_encoding
+            if server_enc.lower() != "utf8":
+                # https://stackoverflow.com/a/19391061/5567657
+                # https://github.com/ikalnytskyi/action-setup-postgres/issues/3
+                pytest.skip("PostgreSQL is not in UTF8 character set!")
 
     v = "x \U0001F31C z"
 
