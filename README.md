@@ -1,6 +1,6 @@
 # purepyodbc
 
-![CI](https://github.com/chrisimcevoy/purepyodbc/actions/workflows/ci-ubuntu.yml/badge.svg)
+![CI](https://github.com/chrisimcevoy/purepyodbc/actions/workflows/ci.yml/badge.svg)
 ![GitHub](https://img.shields.io/github/license/chrisimcevoy/purepyodbc)
 ![PyPI](https://img.shields.io/pypi/v/purepyodbc)
 
