@@ -14,7 +14,7 @@ class SqlDataType(Enum):
     SQL_BIT = -7
     # SQL_WCHAR = -8
     SQL_WVARCHAR = -9
-    # SQL_WLONGVARCHAR = -10
+    SQL_WLONGVARCHAR = -10
     SQL_CHAR = 1
     SQL_INTEGER = 4
     SQL_SMALLINT = 5

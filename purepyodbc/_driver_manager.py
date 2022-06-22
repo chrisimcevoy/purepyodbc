@@ -688,6 +688,9 @@ SQL_DATA_TYPE_MAP: typing.Dict[SqlDataType, SqlDataTypeHandling] = {
     SqlDataType.SQL_WVARCHAR: SqlDataTypeHandling(
         python_type=str, output_converter=str
     ),
+    SqlDataType.SQL_WLONGVARCHAR: SqlDataTypeHandling(
+        python_type=str, output_converter=str
+    ),
     SqlDataType.SQL_BIT: SqlDataTypeHandling(
         python_type=bool, output_converter=parse_sql_bit
     ),
