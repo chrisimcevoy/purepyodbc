@@ -86,9 +86,10 @@ def test_emoticons_as_literal(cursor, connection_string):
     if "windows" in platform.platform().lower():
         if "postgres" in connection_string.lower():
             # https://stackoverflow.com/a/38487921/5567657
-            cursor.execute("SET client_encoding TO 'UTF8';")
-            cursor.execute("SHOW server_encoding;")
-            server_enc = cursor.fetchone().server_encoding
+            temp = cursor.connection.cursor()
+            temp.execute("SET client_encoding TO 'UTF8';")
+            temp.execute("SHOW server_encoding;")
+            server_enc = temp.fetchone().server_encoding
             if server_enc.lower() != "utf8":
                 # https://stackoverflow.com/a/19391061/5567657
                 # https://github.com/ikalnytskyi/action-setup-postgres/issues/3

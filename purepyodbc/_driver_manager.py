@@ -62,7 +62,7 @@ def detect_driver_manager() -> DriverManager:
 
     if platform.system() == "Windows":
         odbc32 = ctypes.windll.odbc32  # type: ignore[attr-defined]
-        return WindowsDriverManager(cdll=odbc32)
+        return DriverManager(cdll=odbc32)
     else:
         paths = (
             Path("/usr/lib64"),
@@ -73,9 +73,9 @@ def detect_driver_manager() -> DriverManager:
         )
         for path in paths:
             for unixodbc_so in reversed(sorted(path.glob("libodbc.so*"))):
-                return UnixOdbc(cdll=cdll.LoadLibrary(str(unixodbc_so)))
+                return DriverManager(cdll=cdll.LoadLibrary(str(unixodbc_so)))
             for iodbc_so in path.glob("libiodbc.so*"):
-                return Iodbc(cdll=cdll.LoadLibrary(str(iodbc_so)))
+                return DriverManager(cdll=cdll.LoadLibrary(str(iodbc_so)))
         raise FileNotFoundError("No supported driver manager detected!")
 
 
@@ -178,6 +178,20 @@ class DriverManager:
             func = getattr(self.cdll, func_name)
             func.restype = c_short
 
+        # unixODBC defaults to 2-bytes SQLWCHAR, unless "-DSQL_WCHART_CONVERT" was
+        # added to CFLAGS, in which case it will be the size of wchar_t.
+        # Note that using 4-bytes SQLWCHAR will break most ODBC drivers, as driver
+        # development mostly targets the Windows platform.
+        from subprocess import getstatusoutput  # nosec
+
+        status, output = getstatusoutput("odbc_config --cflags")
+        if status == 0 and "SQL_WCHART_CONVERT" in output.upper():
+            sqlwchar_type = c_wchar
+        else:
+            # TODO: We don't know for sure - should we generate a warning?
+            sqlwchar_type = c_ushort
+        self._sqlwchar_size = sizeof(sqlwchar_type)
+
     @property
     def _odbc_bytes_per_char(self) -> int:
         """Return the (max) number of bytes per char for the Driver Manager's encoding."""
@@ -199,15 +213,21 @@ class DriverManager:
         return c_char_p(s)
 
     def _to_wchar_pointer(self, s):
+        if self._sqlwchar_size == 2:
+            return c_char_p(self._odbc_encode(s))
         return c_wchar_p(s)
 
     def _odbc_encode(self, s):
         return s.encode(self._odbc_encoding)
 
     def _to_buffer(self, init, size=None):
+        if self._sqlwchar_size == 2:
+            return create_string_buffer(init, size)
         return create_unicode_buffer(init, size)
 
     def _from_buffer(self, buffer) -> str:
+        if self._sqlwchar_size == 2:
+            return buffer.raw.decode(self._odbc_encoding).rstrip("\x00")
         return buffer.value
 
     def allocate_environment(self, environment: Environment) -> None:
@@ -625,48 +645,6 @@ class DriverManager:
             )
         )
         self.check_success(return_code, cursor)
-
-
-@dataclass
-class WindowsDriverManager(DriverManager):
-    pass
-
-
-class Iodbc(DriverManager):
-    pass
-
-
-@dataclass
-class UnixOdbc(DriverManager):
-    def __post_init__(self):
-        # unixODBC defaults to 2-bytes SQLWCHAR, unless "-DSQL_WCHART_CONVERT" was
-        # added to CFLAGS, in which case it will be the size of wchar_t.
-        # Note that using 4-bytes SQLWCHAR will break most ODBC drivers, as driver
-        # development mostly targets the Windows platform.
-        from subprocess import getstatusoutput  # nosec
-
-        status, output = getstatusoutput("odbc_config --cflags")
-        if status == 0 and "SQL_WCHART_CONVERT" in output.upper():
-            sqlwchar_type = c_wchar
-        else:
-            # TODO: We don't know for sure - should we generate a warning?
-            sqlwchar_type = c_ushort
-        self._sqlwchar_size = sizeof(sqlwchar_type)
-
-    def _to_wchar_pointer(self, s):
-        if self._sqlwchar_size == 2:
-            return c_char_p(self._odbc_encode(s))
-        return super()._to_wchar_pointer(s)
-
-    def _to_buffer(self, init, size=None):
-        if self._sqlwchar_size == 2:
-            return create_string_buffer(init, size)
-        return super()._to_buffer(init, size)
-
-    def _from_buffer(self, buffer) -> str:
-        if self._sqlwchar_size == 2:
-            return buffer.raw.decode(self._odbc_encoding).rstrip("\x00")
-        return super()._from_buffer(buffer)
 
 
 def parse_sql_bit(value: str) -> bool:
