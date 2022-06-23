@@ -1,4 +1,5 @@
 import platform
+import uuid
 
 from purepyodbc import Error, ProgrammingError
 
@@ -129,10 +130,14 @@ def test_nextset(cursor):
 
 
 def test_tables(cursor):
-    cursor.tables(schema="%")
+    tbl = str(uuid.uuid4())
+    cursor.execute(f"drop table if exists \"{tbl}\";")
+    cursor.execute(f"create table \"{tbl}\" (a varchar(1));")
+    cursor.tables(table=tbl)
     r = cursor.fetchone()
     assert hasattr(r, "table_cat")
     assert hasattr(r, "table_schem")
     assert hasattr(r, "table_name")
     assert hasattr(r, "table_type")
     assert hasattr(r, "remarks")
+    assert r.table_name == tbl
