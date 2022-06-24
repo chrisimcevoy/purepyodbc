@@ -3,44 +3,68 @@
 ![CI](https://github.com/chrisimcevoy/purepyodbc/actions/workflows/ci.yml/badge.svg)
 ![GitHub](https://img.shields.io/github/license/chrisimcevoy/purepyodbc)
 ![PyPI](https://img.shields.io/pypi/v/purepyodbc)
+![PyPI - Format](https://img.shields.io/pypi/format/purepyodbc)
+![PyPI - Status](https://img.shields.io/pypi/status/purepyodbc)
+![PyPI - Implementation](https://img.shields.io/pypi/implementation/purepyodbc)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/purepyodbc)
 
 ## What is this?
 
-This is a project which aims to provide a "pure Python" implementation of ODBC.
+This project provides a "pure python" ODBC bridge. Or at least as "pure" as it can possibly be.
 
-It will eventually implement the [DB API 2.0](https://www.python.org/dev/peps/pep-0249) specification.
+### Project aims
 
-It may or may not end up adopting a similar public API to the well-known [pyodbc](https://github.com/mkleehammer/pyodbc).
+- Implement the [DB API 2.0](https://www.python.org/dev/peps/pep-0249) specification.
+- Become API-equivalent to the well-known [pyodbc](https://github.com/mkleehammer/pyodbc).
+- Act as a drop-in replacement for pyodbc for situations where C++ compilation is undesirable, or where pyodbc is otherwise not available.
+- Users should be able to change `import pyodbc` to `import purepyodbc as pyodbc` and have it Just Work™.
 
-## Why would you do a foolish thing like that?
+### Project non-aims
 
-I'll give you two reasons:
+- Performance (at least in the short- to mid-term)
+- Features other than those offered by pyodbc
 
-- I could use something like this myself, but it would need to be compatible with PyPy3.x and with recent editions of SQL Server (and the features thereof).
-- I could learn something by doing this project.
+## Installation
 
-## Why not just use {{package}}?
+### Python/pip
 
-I refer you to [my previous answer](#Why-would-you-do-a-foolish-thing-like-that?).
+The easy bit is installing this package; You just `pip install purepyodbc`.
 
-## Can I use this?
+### ODBC setup
 
-I wouldn't do that if I were you. 
+Here is a rough diagram showing how all the pieces hang together.
 
-I mean, if you actually did, ho-ho, bwahaha! 
+```mermaid
+  graph LR;
+      purepyodbc[Python/purepyodbc]<-->drivermanager[ODBC Driver Manager];
+      drivermanager-->driver[ODBC Driver];
+      driver-->database[(Database)];
+	  database-->driver;
+	  driver-->drivermanager;
+	  drivermanager-->purepyodbc
+```
 
-Ahem.
+You will need an ODBC driver manager installed on your system. On Windows, you probably don't need to install anything. On Linux (and possibly macOS and other *nix-likes although we don't test it), unixODBC is probably best although others may work.
 
-I mean, if you actually _did_, then... it would be **entirely at your own risk**.
+Once you've got that, you'll need one or more ODBC driver for whichever database(s) you want to talk to. Just as purepyodbc talks to the driver manager, the driver manager talks to the driver(s).
 
-## Can I contribute to it?
+### Supported ODBC configurations
 
-We both know you've got nothing better to do, so... why not give it a shot? The worst I can do is say no.
+(To be expanded upon in due course)
 
-In all sincerity, there are bound to be people who are better-qualified than I am to do something like this. You might just be one of those people!
+|Operating System|Driver Manager|Driver|Database Server|
+|:-:|:-:|:-:|:-:|
+|Windows|Windows|ODBC Driver 17 for SQL Server|SQL Server|
+|Windows|Windows|SQL Server|SQL Server|
+|Windows|Windows|PostgreSQL Unicode|PostgreSQL|
+|Linux|unixODBC|ODBC Driver 17 for SQL Server|SQL Server|
+|Linux|unixODBC|FreeTDS|SQL Server|
+|Linux|unixODBC|PostgreSQL Unicode|PostgreSQL|
 
-## What platforms does it support?
+## Usage
 
-The good news is that everything that works so far works wonderfully (more or less) on my machine, for my specific use case.
+This section is intentionally brief for now, as the project is very immature.
 
-The bad news? Oh... you don't _really_ want to hear the bad news, do you?
+Anything you would normally do with pyodbc should be possible here.
+
+If it's not, then raise an issue so I can track what people actually want.
