@@ -55,7 +55,6 @@ def test_cursor_description(cursor, pyodbc_cursor):
     ],
 )
 def test_cursor_tables(cursor, pyodbc_cursor, kwargs):
-
     # Arrange
     cursor.execute(drop_child_sql)
     cursor.execute(drop_parent_sql)
@@ -170,7 +169,6 @@ def test_cursor_foreignkeys(cursor, pyodbc_cursor, kwargs):
 
 
 def test_cursor_fetchone(cursor, pyodbc_cursor):
-
     a = cursor.execute(sql).fetchone()
     b = pyodbc_cursor.execute(sql).fetchone()
 

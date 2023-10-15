@@ -368,7 +368,6 @@ class DriverManager:
     def sql_get_data(
         self, cursor: Cursor, column_description: SqlColumnDescription
     ) -> typing.Any:
-
         buffer_size = 4096
         buffer = self._to_buffer(buffer_size)
         length_or_indicator = SQLLEN()
@@ -411,7 +410,6 @@ class DriverManager:
         return return_code != ReturnCode.SQL_NO_DATA
 
     def sql_get_info(self, connection: Connection, info_type: InfoType) -> typing.Any:
-
         buffer_size = 4096
         buffer = self._to_buffer(buffer_size)
         string_len = SQLSMALLINT()
