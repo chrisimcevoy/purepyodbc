@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional, Any
+
 from ._driver_manager import DriverManager, detect_driver_manager
 from ._enums import HandleType, OdbcVersion
 from ._handler import Handler
@@ -8,7 +10,7 @@ from ._connection import Connection
 
 class Environment(Handler):
     def __init__(
-        self, driver_manager: DriverManager = None, pooling: bool = False
+        self, driver_manager: Optional[DriverManager] = None, pooling: bool = False
     ) -> None:
         if driver_manager is None:
             driver_manager = detect_driver_manager()
@@ -25,8 +27,8 @@ class Environment(Handler):
         ansi: bool = False,
         timeout: int = 0,
         readonly: bool = False,
-        attrs_before: dict = None,
-        encoding: str = None,
+        attrs_before: Optional[dict[str, Any]] = None,
+        encoding: Optional[str] = None,
     ) -> Connection:
         connection = Connection(driver_manager=self._driver_manager)
         self._driver_manager.allocate_connection(self, connection)

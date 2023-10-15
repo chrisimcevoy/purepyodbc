@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from . import _driver_manager
 from ._connection import Connection
@@ -38,10 +38,9 @@ def connect(
     ansi: bool = False,
     timeout: int = 0,
     readonly: bool = False,
-    attrs_before: Dict[str, Any] = None,
-    encoding: str = None,
+    attrs_before: Optional[Dict[str, Any]] = None,
+    encoding: Optional[str] = None,
 ) -> Connection:
-
     __ensure_environment_created()
 
     connection = __environment.connection(
