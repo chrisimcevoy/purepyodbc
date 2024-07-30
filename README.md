@@ -52,14 +52,14 @@ Once you've got that, you'll need one or more ODBC driver for whichever database
 
 (To be expanded upon in due course)
 
-|Operating System|Driver Manager|Driver|Database Server|
-|:-:|:-:|:-:|:-:|
-|Windows|Windows|ODBC Driver 17 for SQL Server|SQL Server|
-|Windows|Windows|SQL Server|SQL Server|
-|Windows|Windows|PostgreSQL Unicode|PostgreSQL|
-|Linux|unixODBC|ODBC Driver 17 for SQL Server|SQL Server|
-|Linux|unixODBC|FreeTDS|SQL Server|
-|Linux|unixODBC|PostgreSQL Unicode|PostgreSQL|
+| Operating System | Driver Manager |            Driver             | Database Server |
+|:----------------:|:--------------:|:-----------------------------:|:---------------:|
+|     Windows      |    Windows     | ODBC Driver 17 for SQL Server |   SQL Server    |
+|     Windows      |    Windows     |          SQL Server           |   SQL Server    |
+|     Windows      |    Windows     |      PostgreSQL Unicode       |   PostgreSQL    |
+|      Linux       |    unixODBC    | ODBC Driver 17 for SQL Server |   SQL Server    |
+|      Linux       |    unixODBC    |            FreeTDS            |   SQL Server    |
+|      Linux       |    unixODBC    |      PostgreSQL Unicode       |   PostgreSQL    |
 
 ## Usage
 
