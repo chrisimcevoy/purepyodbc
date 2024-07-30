@@ -435,7 +435,6 @@ class DriverManager:
     ) -> list[str]:
         buffer_size = 1000
         direction = SqlFetchType.SQL_FETCH_FIRST
-        buffer_length = c_short(buffer_size)
         description_length = c_short()
         attributes_length = c_short()
         drivers = []
@@ -447,10 +446,10 @@ class DriverManager:
                 environment.handle,
                 direction.value,
                 driver_description,
-                buffer_length,
+                buffer_size,
                 byref(description_length),
                 driver_attributes,
-                buffer_length,
+                buffer_size,
                 byref(attributes_length),
             )
             self.check_success(return_code, environment)
