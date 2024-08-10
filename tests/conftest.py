@@ -9,11 +9,16 @@ import purepyodbc
 
 PLATFORM = platform.system()
 
+# These are set in docker-compose.yml.
+# Default to localhost otherwise (e.g. in github actions).
+SQL_SERVER_HOST = os.environ.get("SQL_SERVER_HOST", "localhost")
+POSTGRESQL_HOST = os.environ.get("POSTGRESQL_HOST", "localhost")
+
 
 @pytest.fixture(
     params=[
         pytest.param(
-            ("ODBC Driver 17 for SQL Server", 1433),
+            ("ODBC Driver 17 for SQL Server", SQL_SERVER_HOST, 1433),
             id="msodbcsql17",
             marks=[
                 pytest.mark.skipif(
@@ -23,7 +28,7 @@ PLATFORM = platform.system()
             ],
         ),
         pytest.param(
-            ("SQL Server", 1433),
+            ("SQL Server", SQL_SERVER_HOST, 1433),
             id="SQL Server (MDAC)",
             marks=[
                 pytest.mark.skipif(
@@ -37,7 +42,7 @@ PLATFORM = platform.system()
             ],
         ),
         pytest.param(
-            ("FreeTDS", 1433),
+            ("FreeTDS", SQL_SERVER_HOST, 1433),
             id="FreeTDS",
             marks=[
                 pytest.mark.skipif(
@@ -51,7 +56,7 @@ PLATFORM = platform.system()
             ],
         ),
         pytest.param(
-            ("PostgreSQL Unicode", 5432),
+            ("PostgreSQL Unicode", POSTGRESQL_HOST, 5432),
             id="PgSQL Unicode",
             marks=[
                 pytest.mark.skipif(
@@ -63,8 +68,8 @@ PLATFORM = platform.system()
     ]
 )
 def connection_string(request) -> str:
-    driver, port = request.param
-    return f"DRIVER={{{driver}}};PORT={port};SERVER=localhost;UID=sa;PWD=Password123;"
+    driver, server, port = request.param
+    return f"DRIVER={{{driver}}};PORT={port};SERVER={server};UID=sa;PWD=Password123;"
 
 
 @pytest.fixture
@@ -83,7 +88,7 @@ def cursor(connection) -> typing.Generator[purepyodbc.Cursor, None, None]:
 
 @pytest.fixture()
 def pyodbc():
-    pyodbc = pytest.importorskip("pyodbc")
+    pyodbc = pytest.importorskip("pyodbc", reason="pyodbc is not installed")
     yield pyodbc
 
 
