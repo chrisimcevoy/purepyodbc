@@ -38,7 +38,7 @@ jobs:
         cat /etc/odbcinst.ini
     - name: Build the docker-compose stack
       if: matrix.os == 'ubuntu-latest'
-      run: docker-compose up -d
+      run: docker compose up -d sqlserver && docker compose up -d postgresql
     - name: Check running containers
       if: matrix.os == 'ubuntu-latest'
       run: docker ps -a
