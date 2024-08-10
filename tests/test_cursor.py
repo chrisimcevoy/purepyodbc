@@ -131,8 +131,8 @@ def test_nextset(cursor):
 
 def test_tables(cursor):
     tbl = str(uuid.uuid4())
-    cursor.execute(f"drop table if exists \"{tbl}\";")
-    cursor.execute(f"create table \"{tbl}\" (a varchar(1));")
+    cursor.execute(f'drop table if exists "{tbl}";')
+    cursor.execute(f'create table "{tbl}" (a varchar(1));')
     cursor.tables(table=tbl)
     r = cursor.fetchone()
     assert hasattr(r, "table_cat")

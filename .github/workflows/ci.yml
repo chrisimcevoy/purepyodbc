@@ -7,23 +7,24 @@ on:
     branches: [ master ]
 
 jobs:
-  purepyodbc-ci:
+  pytest:
     strategy:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
         python-version:
-          - "3.8"
           - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
-          - "pypy-3.8"
           - "pypy-3.9"
           - "pypy-3.10"
+    defaults:
+      run:
+        shell: bash
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     # Begin Ubuntu steps
     - name: Install ODBC Drivers
@@ -38,7 +39,7 @@ jobs:
         cat /etc/odbcinst.ini
     - name: Build the docker-compose stack
       if: matrix.os == 'ubuntu-latest'
-      run: docker-compose up -d
+      run: docker compose up -d sqlserver && docker compose up -d postgresql
     - name: Check running containers
       if: matrix.os == 'ubuntu-latest'
       run: docker ps -a
@@ -75,12 +76,17 @@ jobs:
     # End Windows steps
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install Python dependencies
-      run: |
-        pip install -U pip
-        pip install -Ur requirements.txt
-    - name: Test with pytest
-      run: pytest
+
+    - name: Install poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.8.3
+
+    - name: Install dependencies with Poetry
+      run: poetry install
+
+    - name: Run tests
+      run: poetry run pytest
