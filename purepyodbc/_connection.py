@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ._errors import ProgrammingError
 from ._cursor import Cursor
 from ._handler import Handler
@@ -6,6 +8,7 @@ from ._enums import HandleType, InfoType
 
 class Connection(Handler):
     """Connection objects manage connections to the database.
+
     Each manages a single ODBC HDBC.
     """
 
@@ -39,23 +42,9 @@ class Connection(Handler):
     def setencoding(self, *args, **kwargs):
         raise NotImplementedError
 
-    def setdecoding(self, sqltype, encoding, ctype) -> None:
-        """
-        setdecoding(sqltype, encoding=None, ctype=None) --> None
-
-        Configures how text of type `ctype` (SQL_CHAR or SQL_WCHAR) is decoded
-        when read from the database.
-
-        When reading, the database will assign one of the sqltypes to text columns.
-        pyodbc uses this lookup the decoding information set by this function.
-        sqltype: pyodbc.SQL_CHAR or pyodbc.SQL_WCHAR
-
-        encoding: A registered Python encoding such as "utf-8".
-
-        ctype: The C data type should be requested.  Set this to SQL_CHAR for
-          single-byte encodings like UTF-8 and to SQL_WCHAR for two-byte encodings
-          like UTF-16.
-        """
+    def setdecoding(
+        self, sqltype: int, encoding: str | None = None, ctype: int | None = None
+    ) -> None:
         raise NotImplementedError
 
 

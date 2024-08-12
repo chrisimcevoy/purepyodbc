@@ -8,7 +8,7 @@ from ._connection import Connection
 
 class Environment(Handler):
     def __init__(
-        self, driver_manager: DriverManager = None, pooling: bool = False
+        self, driver_manager: DriverManager | None = None, pooling: bool = False
     ) -> None:
         if driver_manager is None:
             driver_manager = detect_driver_manager()
@@ -25,8 +25,8 @@ class Environment(Handler):
         ansi: bool = False,
         timeout: int = 0,
         readonly: bool = False,
-        attrs_before: dict = None,
-        encoding: str = None,
+        attrs_before: dict | None = None,
+        encoding: str | None = None,
     ) -> Connection:
         connection = Connection(driver_manager=self._driver_manager)
         self._driver_manager.allocate_connection(self, connection)

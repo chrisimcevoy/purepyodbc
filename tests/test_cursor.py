@@ -96,7 +96,7 @@ def test_emoticons_as_literal(cursor, connection_string):
                 # https://github.com/ikalnytskyi/action-setup-postgres/issues/3
                 pytest.skip("PostgreSQL is not in UTF8 character set!")
 
-    v = "x \U0001F31C z"
+    v = "x \U0001f31c z"
 
     cursor.execute("drop table if exists t1")
 
