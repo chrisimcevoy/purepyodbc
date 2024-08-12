@@ -1,4 +1,3 @@
-import platform
 import uuid
 
 from purepyodbc import Error, ProgrammingError
@@ -83,18 +82,6 @@ def test_emoticons_as_literal(cursor, connection_string):
     if "freetds" in connection_string.lower():
         # https://github.com/FreeTDS/freetds/issues/317
         check_freetds_version()
-
-    if "windows" in platform.platform().lower():
-        if "postgres" in connection_string.lower():
-            # https://stackoverflow.com/a/38487921/5567657
-            temp = cursor.connection.cursor()
-            temp.execute("SET client_encoding TO 'UTF8';")
-            temp.execute("SHOW server_encoding;")
-            server_enc = temp.fetchone().server_encoding
-            if server_enc.lower() != "utf8":
-                # https://stackoverflow.com/a/19391061/5567657
-                # https://github.com/ikalnytskyi/action-setup-postgres/issues/3
-                pytest.skip("PostgreSQL is not in UTF8 character set!")
 
     v = "x \U0001f31c z"
 
