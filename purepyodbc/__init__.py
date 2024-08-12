@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import List, Dict, Any
 
 from . import _driver_manager
@@ -38,10 +40,9 @@ def connect(
     ansi: bool = False,
     timeout: int = 0,
     readonly: bool = False,
-    attrs_before: Dict[str, Any] = None,
-    encoding: str = None,
+    attrs_before: Dict[str, Any] | None = None,
+    encoding: str | None = None,
 ) -> Connection:
-
     __ensure_environment_created()
 
     connection = __environment.connection(

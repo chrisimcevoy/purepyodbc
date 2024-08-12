@@ -21,8 +21,7 @@ class Handler:
 
     @property
     @abstractmethod
-    def handle_type(self) -> HandleType:
-        ...
+    def handle_type(self) -> HandleType: ...
 
     def close(self) -> None:
         if self._closed:

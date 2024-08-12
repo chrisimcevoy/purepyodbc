@@ -6,6 +6,7 @@ from ._enums import SqlDataType
 
 class ColumnDescription(typing.NamedTuple):
     """A description of a result set column.
+
     https://www.python.org/dev/peps/pep-0249/#description
     """
 

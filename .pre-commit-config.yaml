@@ -1,32 +1,49 @@
+default_stages:
+  - commit
+
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+  - pre-push
+
 default_language_version:
-  python: python3.9
+    python: python3.9
 
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
-    hooks:
-    - id: check-merge-conflict
-    - id: debug-statements
 
-  - repo: https://github.com/PyCQA/flake8
-    rev: 4.0.1
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.29.0
     hooks:
-      - id: flake8
-        args: [--max-line-length=100, --ignore=E203]
+      - id: commitizen
+        stages:
+          - commit-msg
+      - id: commitizen-branch
+        stages:
+          - push
+        args:
+          - --rev-range
+          - origin/master..HEAD
+        always_run: true
+        pass_filenames: false
 
-  - repo: https://github.com/psf/black
-    rev: 22.3.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
     hooks:
-      - id: black
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
 
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.0
+  - repo: https://github.com/PyCQA/docformatter
+    rev: v1.7.5
     hooks:
-      - id: bandit
-        exclude: ^tests/
+      - id: docformatter
+        additional_dependencies: [tomli]
+        args: ["--in-place", "--config", "./pyproject.toml"]
 
-  -   repo: https://github.com/pre-commit/mirrors-mypy
-      rev: v0.961
-      hooks:
-      -   id: mypy
-          args: [--show-error-codes, --ignore-missing-imports]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.11.1'
+    hooks:
+    -   id: mypy
+        additional_dependencies: [
+          pytest,
+        ]

@@ -58,6 +58,7 @@ class HandleType(Enum):
 
 class InfoType(Enum):
     """Information types supported by SQLGetInfo.
+
     https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlgetinfo-function?view=sql-server-ver16#information-types
     """
 

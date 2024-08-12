@@ -1,4 +1,5 @@
-"""This module is more or less a transcription of sqltypes.h"""
+"""This module is more or less a transcription of sqltypes.h."""
+
 from __future__ import annotations
 
 import ctypes

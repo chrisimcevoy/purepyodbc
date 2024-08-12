@@ -19,9 +19,9 @@ class Cursor(Handler):
         self.arraysize = 1
         self.__rowcount = -1
         self.__column_descriptions: typing.Tuple[ColumnDescription, ...] = tuple()
-        self.__sql_column_descriptions: typing.Tuple[
-            SqlColumnDescription, ...
-        ] = tuple()
+        self.__sql_column_descriptions: typing.Tuple[SqlColumnDescription, ...] = (
+            tuple()
+        )
         self._driver_manager.allocate_statement(self)
 
     @property
@@ -58,6 +58,7 @@ class Cursor(Handler):
 
     def fetchmany(self, size: typing.Optional[int] = None) -> typing.List[Row]:
         """Fetch the next set of rows of a query result.
+
         https://www.python.org/dev/peps/pep-0249/#fetchmany
         """
 
