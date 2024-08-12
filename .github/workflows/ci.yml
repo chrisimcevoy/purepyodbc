@@ -60,7 +60,7 @@ jobs:
         #collation: Latin1_General_BIN
     - name: Install PostgreSQL (Windows & macOS)
       if: matrix.os != 'ubuntu-latest'
-      uses: ikalnytskyi/action-setup-postgres@v2
+      uses: ikalnytskyi/action-setup-postgres@v6
       with:
         username: sa
         password: Password123
