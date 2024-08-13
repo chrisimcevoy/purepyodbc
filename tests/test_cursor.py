@@ -62,27 +62,6 @@ def test_illegal_fetchone_raises(cursor):
 
 
 def test_emoticons_as_literal(cursor, connection_string):
-    def check_freetds_version():
-        from subprocess import getstatusoutput
-
-        status, output = getstatusoutput("tsql -C")
-        if status != 0:
-            return
-        for line in output.split("\n"):
-            line = line.lower().strip()
-            version_line_start = "version: freetds v"
-            if line.startswith(version_line_start):
-                from packaging import version
-
-                freetds_version = version.parse(line.lstrip(version_line_start))
-                fixed_version = version.parse("1.1.23")
-                if freetds_version < fixed_version:
-                    pytest.xfail("Doesn't work in old versions of FreeTDS")
-
-    if "freetds" in connection_string.lower():
-        # https://github.com/FreeTDS/freetds/issues/317
-        check_freetds_version()
-
     v = "x \U0001f31c z"
 
     cursor.execute("drop table if exists t1")
