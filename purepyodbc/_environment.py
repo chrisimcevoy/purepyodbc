@@ -30,6 +30,14 @@ class Environment(Handler):
     ) -> Connection:
         connection = Connection(driver_manager=self._driver_manager)
         self._driver_manager.allocate_connection(self, connection)
+
+        # Initialize autocommit mode.
+        # The DB API says we have to default to manual-commit, but ODBC defaults to auto-commit.  We also provide a
+        # keyword parameter that allows the user to override the DB API and force us to start in auto-commit (in which
+        # case we don't have to do anything).
+        if not autocommit:
+            connection.autocommit = autocommit
+
         self._driver_manager.sql_driver_connect(
             connection, connection_string, ansi=ansi
         )

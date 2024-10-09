@@ -3,14 +3,46 @@ from __future__ import annotations
 from ._errors import ProgrammingError
 from ._cursor import Cursor
 from ._handler import Handler
-from ._enums import HandleType, InfoType
+from ._enums import (
+    HandleType,
+    InfoType,
+    ConnectionAttributeType,
+    ConnectionAutocommitMode,
+    CompletionType,
+)
 
 
 class Connection(Handler):
-    """Connection objects manage connections to the database.
+    """The ODBC connection class representing an ODBC connection to a database, for
+    managing database transactions and creating cursors.
+    https://www.python.org/dev/peps/pep-0249/#connection-objects
 
-    Each manages a single ODBC HDBC.
+    This class should not be instantiated directly, instead call purepyodbc.connect() to
+    create a Connection object.
     """
+
+    @property
+    def autocommit(self) -> bool:
+        """Whether the database automatically executes a commit after every successful transaction.
+
+        Default is False.
+        """
+        # TODO: According to pep-0249 this is deprecated.
+        #  https://peps.python.org/pep-0249/#optional-db-api-extensions
+        ret: int = self._driver_manager.sql_get_connect_attr(
+            connection=self, attr=ConnectionAttributeType.SQL_ATTR_AUTOCOMMIT
+        )
+        return (
+            ConnectionAutocommitMode(ret) == ConnectionAutocommitMode.SQL_AUTOCOMMIT_ON
+        )
+
+    @autocommit.setter
+    def autocommit(self, enabled: bool) -> None:
+        self._driver_manager.sql_set_connect_attr(
+            connection=self,
+            attr=ConnectionAttributeType.SQL_ATTR_AUTOCOMMIT,
+            value=ConnectionAutocommitMode(int(enabled)).value,
+        )
 
     def cursor(self) -> Cursor:
         cur = Cursor(self._driver_manager, self)
@@ -28,14 +60,14 @@ class Connection(Handler):
         return HandleType.SQL_HANDLE_DBC
 
     def commit(self) -> None:
-        # TODO: Implement Connection.commit()
-        raise NotImplementedError
+        self._driver_manager.sql_end_tran(self, CompletionType.SQL_COMMIT)
 
     def rollback(self) -> None:
-        # TODO: Implement Connection.rollback()
-        raise NotImplementedError
+        self._driver_manager.sql_end_tran(self, CompletionType.SQL_ROLLBACK)
 
     def close(self) -> None:
+        if not self.autocommit:
+            self.rollback()
         self._driver_manager.sql_disconnect(self)
         super().close()
 
