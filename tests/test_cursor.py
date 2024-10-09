@@ -61,7 +61,7 @@ def test_illegal_fetchone_raises(cursor):
         cursor.fetchone()
 
 
-def test_emoticons_as_literal(cursor, connection_string):
+def test_emoticons_as_literal(cursor):
     v = "x \U0001f31c z"
 
     cursor.execute("drop table if exists t1")

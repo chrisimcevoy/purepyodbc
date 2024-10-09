@@ -60,6 +60,7 @@ def test_cursor_tables(cursor, pyodbc_cursor, kwargs):
     cursor.execute(drop_parent_sql)
     cursor.execute(create_parent_sql)
     cursor.execute(create_child_sql)
+    cursor.connection.commit()
 
     attrs = ["table_cat", "table_schem", "table_name", "table_type", "remarks"]
 
@@ -129,6 +130,7 @@ def test_cursor_foreignkeys(cursor, pyodbc_cursor, kwargs):
     cursor.execute(drop_parent_sql)
     cursor.execute(create_parent_sql)
     cursor.execute(create_child_sql)
+    cursor.connection.commit()
 
     attrs = [
         "pktable_cat",

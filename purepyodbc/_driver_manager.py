@@ -50,6 +50,8 @@ from ._enums import (
     SqlFetchType,
     SqlDataType,
     LengthOrIndicatorType,
+    ConnectionAttributeType,
+    CompletionType,
 )
 from ._typedef import SQLSMALLINT, SQLLEN, SQLULEN
 
@@ -265,6 +267,23 @@ class DriverManager:
         )
         self.check_success(return_code, cursor)
 
+    def sql_end_tran(self, handler: Handler, completion_type: CompletionType) -> None:
+        """Request a commit or rollback operation for all active operations on all statements associated with a
+        connection.
+
+        SQLEndTran can also request that a commit or rollback operation be performed for all connections associated with
+        an environment.
+        """
+        if handler.handle_type not in (
+            HandleType.SQL_HANDLE_ENV,
+            HandleType.SQL_HANDLE_DBC,
+        ):
+            raise TypeError(f"Cannot pass {handler.__class__.__name__} to SQLEndTran.")
+        ret: int = self.cdll.SQLEndTran(
+            handler.handle_type.value, handler.handle, completion_type.value
+        )
+        self.check_success(ret, handler)
+
     def sql_free_handle(self, handler: Handler) -> None:
         return_code = self.cdll.SQLFreeHandle(handler.handle_type.value, handler.handle)
         self.check_success(return_code, handler)
@@ -427,6 +446,33 @@ class DriverManager:
         self.check_success(return_code, connection)
 
         return self._from_buffer(buffer)
+
+    def sql_get_connect_attr(
+        self, connection: Connection, attr: ConnectionAttributeType
+    ) -> int:
+        """Returns the current setting of a connection attribute."""
+        foo = ctypes.c_int()
+        bar = ctypes.c_int()
+        return_code = ReturnCode(
+            self.cdll.SQLGetConnectAttrW(
+                connection.handle,  # ConnectionHandle
+                attr.value,  # Attribute
+                byref(foo),
+                sizeof(foo),
+                byref(bar),
+            )
+        )
+
+        self.check_success(return_code, connection)
+
+        return foo.value
+
+    def sql_set_connect_attr(
+        self, connection: Connection, attr: ConnectionAttributeType, value: int
+    ) -> None:
+        ret = self.cdll.SQLSetConnectAttrW(connection.handle, attr.value, value, 0)
+
+        self.check_success(ret, connection)
 
     def sql_drivers(
         self, environment: Environment, include_attributes: bool = False
