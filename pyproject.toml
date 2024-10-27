@@ -7,7 +7,7 @@ wrap-descriptions = 120
 
 [tool.poetry]
 name = "purepyodbc"
-version = "0.0.1.dev0"
+version = "0.1.0"
 description = "A pure python ODBC package"
 authors = ["Christopher McEvoy <chris@chrismcevoy.net>"]
 license = "MIT"
