@@ -26,7 +26,7 @@ native_uuid: bool = False
 paramstyle: str = "qmark"
 pooling: bool = True
 threadsafety: int = 1  # TODO: Check threadsafety
-version = "0.0.1.dev0"
+__version__ = "0.0.1.dev0"
 
 __driver_manager: _driver_manager.DriverManager = (
     _driver_manager.detect_driver_manager()
