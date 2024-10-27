@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__version__ = "0.0.1.dev0"
+
 from typing import List, Dict, Any
 
 from . import _driver_manager
@@ -26,7 +28,6 @@ native_uuid: bool = False
 paramstyle: str = "qmark"
 pooling: bool = True
 threadsafety: int = 1  # TODO: Check threadsafety
-__version__ = "0.0.1.dev0"
 version = "0.0.1.dev0"
 
 __driver_manager: _driver_manager.DriverManager = (
