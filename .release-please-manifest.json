@@ -1,0 +1,23 @@
+{
+  "packages": {
+    ".": {
+      "component": "purepyodbc",
+      "version-file": [
+        "pyproject.toml",
+        "purepyodbc/__init__.py"
+      ],
+      "extra-files": [
+        {
+          "file": "purepyodbc/__init__.py",
+          "parser": "regex",
+          "pattern": "^version = \"(.*)\"$"
+        },
+        {
+          "file": "purepyodbc/__init__.py",
+          "parser": "regex",
+          "pattern": "^__version__ = \"(.*)\"$"
+        }
+      ]
+    }
+  }
+}
