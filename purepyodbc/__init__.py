@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-__version__ = "0.0.1.dev0"
-
 from typing import List, Dict, Any
 
 from . import _driver_manager
