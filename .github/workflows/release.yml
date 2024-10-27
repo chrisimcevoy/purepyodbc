@@ -17,6 +17,8 @@ jobs:
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           release-type: python
+          extra-files: |
+            purepyodbc/__init__.py
 
   publish:
     name: publish
