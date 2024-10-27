@@ -1,0 +1,60 @@
+dependencies:
+- changed-files:
+    - any-glob-to-any-file: 'poetry.lock'
+
+docker:
+- changed-files:
+    - any-glob-to-any-file: '**/Dockerfile'
+
+documentation:
+- changed-files:
+    - any-glob-to-any-file:
+        - 'docs/**'
+        - '**/*.md'
+
+github_actions:
+- changed-files:
+    - any-glob-to-any-file: '.github/**'
+
+json:
+- changed-files:
+    - any-glob-to-any-file: '**/*.json'
+
+markdown:
+- changed-files:
+    - any-glob-to-any-file: '**/*.md'
+
+nzd:
+- changed-files:
+    - any-glob-to-any-file: '**/*.nzd'
+
+release:
+- changed-files:
+    - any-glob-to-any-file: 'CHANGELOG.md'
+
+reStructuredText:
+- changed-files:
+    - any-glob-to-any-file: '**/*.rst'
+
+python:
+- changed-files:
+    - any-glob-to-any-file: '**/*.py'
+
+shell:
+- changed-files:
+    - any-glob-to-any-file: '**/*.sh'
+
+tests:
+- changed-files:
+    - any-glob-to-any-file: 'tests/**'
+
+toml:
+- changed-files:
+    - any-glob-to-any-file:
+        - '**/*.toml'
+
+yaml:
+- changed-files:
+    - any-glob-to-any-file:
+        - '**/*.yaml'
+        - '**/*.yml'

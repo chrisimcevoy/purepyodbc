@@ -1,12 +1,36 @@
-name: Continuous Integration
+name: test
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
   pull_request:
-    branches: [ master ]
+    branches:
+      - '*'
 
 jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run pre-commit hooks
+        run: poetry run pre-commit run -a
+
   pytest:
     strategy:
       fail-fast: false
