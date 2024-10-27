@@ -23,7 +23,7 @@ jobs:
       - name: Install poetry
         uses: snok/install-poetry@v1
         with:
-          version: 1.8.3
+          version: 1.8.4
 
       - name: Install dependencies
         run: poetry install
@@ -107,7 +107,7 @@ jobs:
     - name: Install poetry
       uses: snok/install-poetry@v1
       with:
-        version: 1.8.3
+        version: 1.8.4
 
     - name: Install dependencies with Poetry
       run: poetry install
