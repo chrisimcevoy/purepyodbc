@@ -18,7 +18,7 @@ python = "^3.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
-pre-commit = "^3.8.0"
+pre-commit = ">=3.8,<5.0"
 pyodbc = { version = "^5.2.0", markers = "platform_python_implementation == 'CPython'" }
 
 [build-system]
