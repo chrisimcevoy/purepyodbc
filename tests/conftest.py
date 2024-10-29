@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import os
 import platform
-import typing
+from types import ModuleType
+from typing import TYPE_CHECKING, Generator
 
 import pytest
 
 import purepyodbc
+
+if TYPE_CHECKING:
+    import pyodbc as _pyodbc
 
 
 PLATFORM = platform.system()
@@ -67,38 +73,40 @@ POSTGRESQL_HOST = os.environ.get("POSTGRESQL_HOST", "localhost")
         ),
     ]
 )
-def connection_string(request) -> str:
+def connection_string(request: pytest.FixtureRequest) -> str:
     driver, server, port = request.param
     return f"DRIVER={{{driver}}};PORT={port};SERVER={server};UID=sa;PWD=Password123;"
 
 
 @pytest.fixture
 def connection(
-    connection_string,
-) -> typing.Generator[purepyodbc.Connection, None, None]:
+    connection_string: str,
+) -> Generator[purepyodbc.Connection, None, None]:
     with purepyodbc.connect(connection_string) as c:
         yield c
 
 
 @pytest.fixture
-def cursor(connection) -> typing.Generator[purepyodbc.Cursor, None, None]:
+def cursor(
+    connection: purepyodbc.Connection,
+) -> Generator[purepyodbc.Cursor, None, None]:
     with connection.cursor() as c:
         yield c
 
 
 @pytest.fixture()
-def pyodbc():
-    pyodbc = pytest.importorskip("pyodbc", reason="pyodbc is not installed")
-    yield pyodbc
+def pyodbc() -> ModuleType:
+    module: ModuleType = pytest.importorskip("pyodbc", reason="pyodbc is not installed")
+    return module
 
 
 @pytest.fixture
-def pyodbc_connection(pyodbc, connection_string):
+def pyodbc_connection(pyodbc: ModuleType, connection_string: str) -> Generator[_pyodbc.Connection]:
     with pyodbc.connect(connection_string) as c:
         yield c
 
 
 @pytest.fixture
-def pyodbc_cursor(pyodbc_connection):
+def pyodbc_cursor(pyodbc_connection: _pyodbc.Connection) -> Generator[_pyodbc.Cursor]:
     with pyodbc_connection.cursor() as c:
         yield c

@@ -1,14 +1,16 @@
+from __future__ import annotations
+
 import inspect
 from typing import Any
 
 import pytest
 
 import purepyodbc
-from purepyodbc import Cursor, Connection
+from purepyodbc import Connection, Cursor
 
 
 class TestModule:
-    def test_constructors(self):
+    def test_constructors(self) -> None:
         assert inspect.isfunction(getattr(purepyodbc, "connect"))
 
     @pytest.mark.parametrize(
@@ -19,7 +21,7 @@ class TestModule:
             ("paramstyle", "qmark"),
         ],
     )
-    def test_globals(self, global_: str, value: Any):
+    def test_globals(self, global_: str, value: Any) -> None:
         """https://www.python.org/dev/peps/pep-0249/#globals"""
         assert getattr(purepyodbc, global_) == value
 
@@ -42,7 +44,7 @@ class TestExceptions:
             (purepyodbc.NotSupportedError, purepyodbc.DatabaseError),
         ],
     )
-    def test_exception_inheritance(self, exc, parent):
+    def test_exception_inheritance(self, exc: type[BaseException], parent: type[BaseException]) -> None:
         assert issubclass(exc, parent)
 
 
@@ -50,7 +52,7 @@ class TestConnection:
     """https://www.python.org/dev/peps/pep-0249/#connection-objects"""
 
     @pytest.mark.parametrize("method", ["close", "commit", "rollback", "cursor"])
-    def test_connection_has_method(self, connection: Connection, method: str):
+    def test_connection_has_method(self, connection: Connection, method: str) -> None:
         """https://www.python.org/dev/peps/pep-0249/#connection-methods"""
         assert inspect.ismethod(getattr(connection, method))
 
@@ -64,7 +66,7 @@ class TestCursor:
             "arraysize",
         ],
     )
-    def test_cursor_has_attribute(self, cursor: Cursor, attr: str):
+    def test_cursor_has_attribute(self, cursor: Cursor, attr: str) -> None:
         assert hasattr(cursor, attr)
 
     @pytest.mark.parametrize(
@@ -82,5 +84,5 @@ class TestCursor:
             pytest.param("setoutputsizes", marks=pytest.mark.xfail),
         ],
     )
-    def test_cursor_has_method(self, cursor: Cursor, method: str):
+    def test_cursor_has_method(self, cursor: Cursor, method: str) -> None:
         assert inspect.ismethod(getattr(cursor, method))

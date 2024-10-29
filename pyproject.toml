@@ -1,9 +1,16 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.docformatter]
 black = true
 recursive = true
 in-place = true
 wrap-summaries = 120
 wrap-descriptions = 120
+
+[tool.mypy]
+strict = true
 
 [tool.poetry]
 name = "purepyodbc"
@@ -21,6 +28,14 @@ pytest = "^8.3.3"
 pre-commit = ">=4.0"
 pyodbc = { version = "^5.2.0", markers = "platform_python_implementation == 'CPython'" }
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff]
+fix = true
+unsafe-fixes = true
+line-length = 120
+lint.extend-select = [
+    "E",    # pycodestyle - Error
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "W",    # pycodestyle - Warning
+]

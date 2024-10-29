@@ -1,5 +1,5 @@
 default_stages:
-  - commit
+  - pre-commit
 
 default_install_hook_types:
   - pre-commit
@@ -19,7 +19,7 @@ repos:
           - commit-msg
       - id: commitizen-branch
         stages:
-          - push
+          - pre-push
         args:
           - --rev-range
           - origin/master..HEAD
@@ -48,5 +48,6 @@ repos:
     hooks:
     -   id: mypy
         additional_dependencies: [
+          pyodbc,
           pytest,
         ]

@@ -1,22 +1,20 @@
 from __future__ import annotations
 
+from typing import Sequence
+
+from ._connection import Connection
 from ._driver_manager import DriverManager, detect_driver_manager
 from ._enums import HandleType, OdbcVersion
 from ._handler import Handler
-from ._connection import Connection
 
 
 class Environment(Handler):
-    def __init__(
-        self, driver_manager: DriverManager | None = None, pooling: bool = False
-    ) -> None:
+    def __init__(self, driver_manager: DriverManager | None = None, pooling: bool = False) -> None:
         if driver_manager is None:
             driver_manager = detect_driver_manager()
         super().__init__(driver_manager)
         self._driver_manager.allocate_environment(self)
-        self._driver_manager.set_environment_odbc_version(
-            self, OdbcVersion.SQL_OV_ODBC3_80
-        )
+        self._driver_manager.set_environment_odbc_version(self, OdbcVersion.SQL_OV_ODBC3_80)
 
     def connection(
         self,
@@ -25,7 +23,7 @@ class Environment(Handler):
         ansi: bool = False,
         timeout: int = 0,
         readonly: bool = False,
-        attrs_before: dict | None = None,
+        attrs_before: dict[int, int | bytes | bytearray | str | Sequence[str]] | None = None,
         encoding: str | None = None,
     ) -> Connection:
         connection = Connection(driver_manager=self._driver_manager)
@@ -38,9 +36,7 @@ class Environment(Handler):
         if not autocommit:
             connection.autocommit = autocommit
 
-        self._driver_manager.sql_driver_connect(
-            connection, connection_string, ansi=ansi
-        )
+        self._driver_manager.sql_driver_connect(connection, connection_string, ansi=ansi)
         return connection
 
     @property

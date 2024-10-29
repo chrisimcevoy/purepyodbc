@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from ._errors import ProgrammingError
+from typing import Any
+
 from ._cursor import Cursor
-from ._handler import Handler
 from ._enums import (
-    HandleType,
-    InfoType,
+    CompletionType,
     ConnectionAttributeType,
     ConnectionAutocommitMode,
-    CompletionType,
+    HandleType,
+    InfoType,
 )
+from ._errors import ProgrammingError
+from ._handler import Handler
 
 
 class Connection(Handler):
@@ -32,9 +34,7 @@ class Connection(Handler):
         ret: int = self._driver_manager.sql_get_connect_attr(
             connection=self, attr=ConnectionAttributeType.SQL_ATTR_AUTOCOMMIT
         )
-        return (
-            ConnectionAutocommitMode(ret) == ConnectionAutocommitMode.SQL_AUTOCOMMIT_ON
-        )
+        return ConnectionAutocommitMode(ret) == ConnectionAutocommitMode.SQL_AUTOCOMMIT_ON
 
     @autocommit.setter
     def autocommit(self, enabled: bool) -> None:
@@ -51,9 +51,7 @@ class Connection(Handler):
     @property
     def searchescape(self) -> str:
         """The escape character to be used with catalog functions."""
-        return self._driver_manager.sql_get_info(
-            self, InfoType.SQL_SEARCH_PATTERN_ESCAPE
-        )
+        return self._driver_manager.sql_get_info(self, InfoType.SQL_SEARCH_PATTERN_ESCAPE)
 
     @property
     def handle_type(self) -> HandleType:
@@ -71,12 +69,10 @@ class Connection(Handler):
         self._driver_manager.sql_disconnect(self)
         super().close()
 
-    def setencoding(self, *args, **kwargs):
+    def setencoding(self, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError
 
-    def setdecoding(
-        self, sqltype: int, encoding: str | None = None, ctype: int | None = None
-    ) -> None:
+    def setdecoding(self, sqltype: int, encoding: str | None = None, ctype: int | None = None) -> None:
         raise NotImplementedError
 
 
