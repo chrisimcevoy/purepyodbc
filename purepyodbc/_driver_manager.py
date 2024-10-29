@@ -2,59 +2,61 @@ from __future__ import annotations
 
 import ctypes
 import datetime
-import typing
 import sys
+import typing
+from _ctypes import Array
 from ctypes import (
-    cdll,
     CDLL,
     byref,
+    c_char,
+    c_char_p,
     c_int,
     c_short,
-    c_char_p,
     c_ushort,
-    c_wchar_p,
-    create_string_buffer,
-    sizeof,
     c_wchar,
+    c_wchar_p,
+    cdll,
+    create_string_buffer,
     create_unicode_buffer,
+    sizeof,
 )
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
+
+import purepyodbc
 
 from . import _constants
-import purepyodbc
 from ._dto import SqlColumnDescription
 
 if TYPE_CHECKING:
+    from ._connection import Connection
     from ._cursor import Cursor
     from ._environment import Environment
-    from ._connection import Connection
     from ._handler import Handler
-from ._errors import (
-    Error,
-    ProgrammingError,
-    InterfaceError,
-    OperationalError,
-    NotSupportedError,
-    IntegrityError,
-    DataError,
-)
 from ._enums import (
-    ReturnCode,
+    CompletionType,
+    ConnectionAttributeType,
+    DriverCompletion,
+    EnvironmentAttributeType,
     HandleType,
     InfoType,
-    OdbcVersion,
-    EnvironmentAttributeType,
-    DriverCompletion,
-    SqlFetchType,
-    SqlDataType,
     LengthOrIndicatorType,
-    ConnectionAttributeType,
-    CompletionType,
+    OdbcVersion,
+    ReturnCode,
+    SqlDataType,
+    SqlFetchType,
 )
-from ._typedef import SQLSMALLINT, SQLLEN, SQLULEN
-
+from ._errors import (
+    DataError,
+    Error,
+    IntegrityError,
+    InterfaceError,
+    NotSupportedError,
+    OperationalError,
+    ProgrammingError,
+)
+from ._typedef import SQLLEN, SQLSMALLINT, SQLULEN
 
 DEFAULT_ODBC_ENCODING = "utf-16-le" if sys.byteorder == "little" else "utf-16-be"
 
@@ -87,7 +89,7 @@ class DriverManager:
     _sqlwchar_size: int = field(init=False, default=2)
     _odbc_encoding: str = field(init=False, default=DEFAULT_ODBC_ENCODING)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Needed for 64-bit Windows, otherwise you get ValueErrors on non-zero ReturnCodes
         for func_name in (
             "SQLAllocHandle",
@@ -187,6 +189,7 @@ class DriverManager:
         from subprocess import getstatusoutput  # nosec
 
         status, output = getstatusoutput("odbc_config --cflags")
+        sqlwchar_type: type[c_wchar] | type[c_ushort]
         if status == 0 and "SQL_WCHART_CONVERT" in output.upper():
             sqlwchar_type = c_wchar
         else:
@@ -197,40 +200,40 @@ class DriverManager:
     @property
     def _odbc_bytes_per_char(self) -> int:
         """Return the (max) number of bytes per char for the Driver Manager's encoding."""
-        if self._odbc_encoding.startswith("utf-8") or self._odbc_encoding.startswith(
-            "utf-32"
-        ):
+        if self._odbc_encoding.startswith("utf-8") or self._odbc_encoding.startswith("utf-32"):
             return 4
         elif self._odbc_encoding.startswith("utf-16"):
             return 2
         raise NotSupportedError(f'"{self._odbc_encoding}" is not supported.')
 
-    def _count_odbc_encoded_bytes(self, s) -> int:
+    def _count_odbc_encoded_bytes(self, s: str) -> int:
         """Return the number of bytes required in the DriverManager's encoding."""
         return int(len(self._odbc_encode(s)) / self._odbc_bytes_per_char)
 
-    def _to_char_pointer(self, s):
+    def _to_char_pointer(self, s: str | bytes) -> c_char_p:
         if isinstance(s, str):
             s = self._odbc_encode(s)
         return c_char_p(s)
 
-    def _to_wchar_pointer(self, s):
+    def _to_wchar_pointer(self, s: str) -> c_char_p | c_wchar_p:
         if self._sqlwchar_size == 2:
             return c_char_p(self._odbc_encode(s))
         return c_wchar_p(s)
 
-    def _odbc_encode(self, s):
+    def _odbc_encode(self, s: str) -> bytes:
         return s.encode(self._odbc_encoding)
 
-    def _to_buffer(self, init, size=None):
+    def _to_buffer(self, init: int, size: int | None = None) -> Array[c_char] | Array[c_wchar]:
         if self._sqlwchar_size == 2:
             return create_string_buffer(init, size)
         return create_unicode_buffer(init, size)
 
-    def _from_buffer(self, buffer) -> str:
+    def _from_buffer(self, buffer: Array[c_char] | Array[c_wchar]) -> str:
         if self._sqlwchar_size == 2:
             return buffer.raw.decode(self._odbc_encoding).rstrip("\x00")
-        return buffer.value
+        # The ignore is needed because ctypes stubs cannot correctly annotate the `value`.
+        # https://github.com/python/typeshed/blob/e92f98ccdaa6e06eb1260e9818590adc0dc8f223/stdlib/_ctypes.pyi#L179-L191
+        return buffer.value  # type: ignore[no-any-return]
 
     def allocate_environment(self, environment: Environment) -> None:
         return_code = self.cdll.SQLAllocHandle(
@@ -240,18 +243,12 @@ class DriverManager:
         )
         self.check_success(return_code, environment)
 
-    def set_environment_odbc_version(
-        self, environment: Environment, odbc_version: OdbcVersion
-    ) -> None:
+    def set_environment_odbc_version(self, environment: Environment, odbc_version: OdbcVersion) -> None:
         attribute = EnvironmentAttributeType.SQL_ATTR_ODBC_VERSION
-        return_code = self.cdll.SQLSetEnvAttr(
-            environment.handle, attribute.value, odbc_version.value
-        )
+        return_code = self.cdll.SQLSetEnvAttr(environment.handle, attribute.value, odbc_version.value)
         self.check_success(return_code, environment)
 
-    def allocate_connection(
-        self, environment: Environment, connection: Connection
-    ) -> None:
+    def allocate_connection(self, environment: Environment, connection: Connection) -> None:
         return_code = self.cdll.SQLAllocHandle(
             HandleType.SQL_HANDLE_DBC.value,
             environment.handle,
@@ -279,18 +276,15 @@ class DriverManager:
             HandleType.SQL_HANDLE_DBC,
         ):
             raise TypeError(f"Cannot pass {handler.__class__.__name__} to SQLEndTran.")
-        ret: int = self.cdll.SQLEndTran(
-            handler.handle_type.value, handler.handle, completion_type.value
-        )
+        ret: int = self.cdll.SQLEndTran(handler.handle_type.value, handler.handle, completion_type.value)
         self.check_success(ret, handler)
 
     def sql_free_handle(self, handler: Handler) -> None:
         return_code = self.cdll.SQLFreeHandle(handler.handle_type.value, handler.handle)
         self.check_success(return_code, handler)
 
-    def sql_driver_connect(
-        self, connection: Connection, connection_string: str, ansi: bool
-    ) -> None:
+    def sql_driver_connect(self, connection: Connection, connection_string: str, ansi: bool) -> None:
+        c_connect_string: c_char_p | c_wchar_p
         if ansi:
             c_connect_string = self._to_char_pointer(connection_string)
             f = self.cdll.SQLDriverConnect
@@ -327,16 +321,14 @@ class DriverManager:
 
     def sql_num_result_cols(self, cursor: Cursor) -> int:
         num_cols = SQLSMALLINT(-1)
-        self.check_success(
-            self.cdll.SQLNumResultCols(cursor.handle, byref(num_cols)), cursor
-        )
+        self.check_success(self.cdll.SQLNumResultCols(cursor.handle, byref(num_cols)), cursor)
         return num_cols.value
 
     def sql_describe_col(
         self,
         cursor: Cursor,
         column_number: int,
-        lowercase: typing.Optional[bool] = None,
+        lowercase: bool | None = None,
     ) -> SqlColumnDescription:
         buffer_length = 1024
         column_name = self._to_buffer(buffer_length)
@@ -384,9 +376,7 @@ class DriverManager:
         self.check_success(return_code, cursor)
         return return_code is not ReturnCode.SQL_NO_DATA
 
-    def sql_get_data(
-        self, cursor: Cursor, column_description: SqlColumnDescription
-    ) -> typing.Any:
+    def sql_get_data(self, cursor: Cursor, column_description: SqlColumnDescription) -> typing.Any:
         buffer_size = 4096
         buffer = self._to_buffer(buffer_size)
         length_or_indicator = SQLLEN()
@@ -416,9 +406,7 @@ class DriverManager:
         try:
             handling = SQL_DATA_TYPE_MAP[column_description.data_type]
         except KeyError:
-            raise InterfaceError(
-                f"No output converter for SQL data type {column_description.data_type.name}"
-            )
+            raise InterfaceError(f"No output converter for SQL data type {column_description.data_type.name}")
 
         value = handling.output_converter(raw_value)
         return value
@@ -428,7 +416,7 @@ class DriverManager:
         self.check_success(return_code, cursor)
         return return_code != ReturnCode.SQL_NO_DATA
 
-    def sql_get_info(self, connection: Connection, info_type: InfoType) -> typing.Any:
+    def sql_get_info(self, connection: Connection, info_type: InfoType) -> str:
         buffer_size = 4096
         buffer = self._to_buffer(buffer_size)
         string_len = SQLSMALLINT()
@@ -447,9 +435,7 @@ class DriverManager:
 
         return self._from_buffer(buffer)
 
-    def sql_get_connect_attr(
-        self, connection: Connection, attr: ConnectionAttributeType
-    ) -> int:
+    def sql_get_connect_attr(self, connection: Connection, attr: ConnectionAttributeType) -> int:
         """Returns the current setting of a connection attribute."""
         foo = ctypes.c_int()
         bar = ctypes.c_int()
@@ -467,16 +453,12 @@ class DriverManager:
 
         return foo.value
 
-    def sql_set_connect_attr(
-        self, connection: Connection, attr: ConnectionAttributeType, value: int
-    ) -> None:
+    def sql_set_connect_attr(self, connection: Connection, attr: ConnectionAttributeType, value: int) -> None:
         ret = self.cdll.SQLSetConnectAttrW(connection.handle, attr.value, value, 0)
 
         self.check_success(ret, connection)
 
-    def sql_drivers(
-        self, environment: Environment, include_attributes: bool = False
-    ) -> list[str]:
+    def sql_drivers(self, environment: Environment, include_attributes: bool = False) -> list[str]:
         buffer_size = 1000
         direction = SqlFetchType.SQL_FETCH_FIRST
         description_length = c_short()
@@ -516,12 +498,14 @@ class DriverManager:
     def sql_tables(
         self,
         cursor: Cursor,
-        catalog: typing.Optional[str],
-        schema: typing.Optional[str],
-        table: typing.Optional[str],
-        table_type: typing.Optional[str],
-    ):
-        def get_pointer_and_len(v) -> tuple[Union[c_wchar_p, ctypes.c_void_p], int]:
+        catalog: str | None,
+        schema: str | None,
+        table: str | None,
+        table_type: str | None,
+    ) -> None:
+        def get_pointer_and_len(
+            v: str | None,
+        ) -> tuple[c_wchar_p | c_char_p | ctypes.c_void_p, int]:
             if v is None:
                 return ctypes.c_void_p(), _constants.SQL_NTS
             # Note that pyodbc just passes SQL_NTS for everything
@@ -547,9 +531,7 @@ class DriverManager:
         )
         self.check_success(return_code, cursor)
 
-    def check_success(
-        self, return_code: Union[int, ReturnCode], handler: Handler
-    ) -> None:
+    def check_success(self, return_code: int | ReturnCode, handler: Handler) -> None:
         if isinstance(return_code, int):
             return_code = ReturnCode(return_code)
 
@@ -562,12 +544,12 @@ class DriverManager:
         if return_code not in success_codes:
             self._handle_error(handler)
 
-    def _handle_error(self, handler) -> None:
+    def _handle_error(self, handler: Handler) -> None:
         state = self._to_buffer(24)
         message = self._to_buffer(1024 * 4)
         native_error = c_int()
         buffer_len = c_short()
-        err_list: typing.List[typing.Tuple[str, str, int]] = []
+        err_list: list[tuple[str, str, int]] = []
 
         while True:
             err_number = len(err_list) + 1
@@ -629,7 +611,13 @@ class DriverManager:
             else:
                 raise Error(f"Unhandled return code: {return_code}")
 
-    def sql_procedures(self, cursor: Cursor, procedure, catalog, schema):
+    def sql_procedures(
+        self,
+        cursor: Cursor,
+        procedure: str | None = None,
+        catalog: str | None = None,
+        schema: str | None = None,
+    ) -> None:
         return_code = ReturnCode(
             self.cdll.SQLProcedures(
                 cursor.handle,
@@ -646,16 +634,18 @@ class DriverManager:
     def sql_foreign_keys(
         self,
         cursor: Cursor,
-        table,
-        catalog,
-        schema,
-        foreignTable,
-        foreignCatalog,
-        foreignSchema,
-    ):
+        table: str | None = None,
+        catalog: str | None = None,
+        schema: str | None = None,
+        foreignTable: str | None = None,
+        foreignCatalog: str | None = None,
+        foreignSchema: str | None = None,
+    ) -> None:
         """https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlforeignkeys-function"""
 
-        def get_pointer_and_len(v) -> tuple[Union[c_wchar_p, ctypes.c_void_p], int]:
+        def get_pointer_and_len(
+            v: str | None,
+        ) -> tuple[c_wchar_p | c_char_p | ctypes.c_void_p, int]:
             if v is None:
                 return ctypes.c_void_p(), _constants.SQL_NTS
             # Note that pyodbc just passes SQL_NTS for everything
@@ -663,27 +653,27 @@ class DriverManager:
             # or if we think we're just wasting cycles here (performance).
             return self._to_wchar_pointer(v), len(v)
 
-        catalog, catalog_len = get_pointer_and_len(catalog)
-        schema, schema_len = get_pointer_and_len(schema)
-        table, table_len = get_pointer_and_len(table)
-        foreignCatalog, foreignCatalog_len = get_pointer_and_len(foreignCatalog)
-        foreignSchema, foreignSchema_len = get_pointer_and_len(foreignSchema)
-        foreignTable, foreignTable_len = get_pointer_and_len(foreignTable)
+        catalog_p, catalog_len = get_pointer_and_len(catalog)
+        schema_p, schema_len = get_pointer_and_len(schema)
+        table_p, table_len = get_pointer_and_len(table)
+        foreignCatalog_p, foreignCatalog_len = get_pointer_and_len(foreignCatalog)
+        foreignSchema_p, foreignSchema_len = get_pointer_and_len(foreignSchema)
+        foreignTable_p, foreignTable_len = get_pointer_and_len(foreignTable)
 
         return_code = ReturnCode(
             self.cdll.SQLForeignKeysW(
                 cursor.handle,
-                catalog,
+                catalog_p,
                 catalog_len,
-                schema,
+                schema_p,
                 schema_len,
-                table,
+                table_p,
                 table_len,
-                foreignCatalog,
+                foreignCatalog_p,
                 foreignCatalog_len,
-                foreignSchema,
+                foreignSchema_p,
                 foreignSchema_len,
-                foreignTable,
+                foreignTable_p,
                 foreignTable_len,
             )
         )
@@ -699,28 +689,21 @@ T = typing.TypeVar("T")
 
 @dataclass(frozen=True)
 class SqlDataTypeHandling(typing.Generic[T]):
-    python_type: typing.Type[T]
+    python_type: type[T]
     output_converter: typing.Callable[[str], T]
 
 
-SQL_DATA_TYPE_MAP: typing.Dict[SqlDataType, SqlDataTypeHandling] = {
+# TODO: Revisit this...
+SQL_DATA_TYPE_MAP: dict[SqlDataType, SqlDataTypeHandling[str | int | bool | datetime.datetime]] = {
     SqlDataType.SQL_CHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
     SqlDataType.SQL_VARCHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
-    SqlDataType.SQL_WVARCHAR: SqlDataTypeHandling(
-        python_type=str, output_converter=str
-    ),
-    SqlDataType.SQL_WLONGVARCHAR: SqlDataTypeHandling(
-        python_type=str, output_converter=str
-    ),
-    SqlDataType.SQL_BIT: SqlDataTypeHandling(
-        python_type=bool, output_converter=parse_sql_bit
-    ),
+    SqlDataType.SQL_WVARCHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
+    SqlDataType.SQL_WLONGVARCHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
+    SqlDataType.SQL_BIT: SqlDataTypeHandling(python_type=bool, output_converter=parse_sql_bit),
     SqlDataType.SQL_INTEGER: SqlDataTypeHandling(python_type=int, output_converter=int),
     SqlDataType.SQL_TINYINT: SqlDataTypeHandling(python_type=int, output_converter=int),
     SqlDataType.SQL_TYPE_TIMESTAMP: SqlDataTypeHandling(
         python_type=datetime.datetime, output_converter=datetime.datetime.fromisoformat
     ),
-    SqlDataType.SQL_SMALLINT: SqlDataTypeHandling(
-        python_type=int, output_converter=int
-    ),
+    SqlDataType.SQL_SMALLINT: SqlDataTypeHandling(python_type=int, output_converter=int),
 }

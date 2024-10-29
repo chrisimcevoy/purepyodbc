@@ -1,10 +1,12 @@
-import typing
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import NamedTuple
 
 from ._enums import SqlDataType
 
 
-class ColumnDescription(typing.NamedTuple):
+class ColumnDescription(NamedTuple):
     """A description of a result set column.
 
     https://www.python.org/dev/peps/pep-0249/#description
@@ -12,11 +14,11 @@ class ColumnDescription(typing.NamedTuple):
 
     name: str
     type_code: type
-    display_size: typing.Optional[int] = None
-    internal_size: typing.Optional[int] = None
-    precision: typing.Optional[int] = None
-    scale: typing.Optional[int] = None
-    null_ok: typing.Optional[bool] = None
+    display_size: int | None = None
+    internal_size: int | None = None
+    precision: int | None = None
+    scale: int | None = None
+    null_ok: bool | None = None
 
 
 @dataclass(frozen=True)

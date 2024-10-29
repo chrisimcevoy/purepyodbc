@@ -1,8 +1,15 @@
+from __future__ import annotations
+
 from abc import abstractmethod
+from types import TracebackType
+from typing import TYPE_CHECKING
 
 from ._driver_manager import DriverManager
-from ._typedef import SQLHANDLE
 from ._enums import HandleType
+from ._typedef import SQLHANDLE
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 
 class Handler:
@@ -13,10 +20,16 @@ class Handler:
         self.handle = SQLHANDLE()
         self._driver_manager: DriverManager = driver_manager
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        # TODO: What happens if self.close() raises?
         self.close()
 
     @property

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 import purepyodbc
@@ -10,7 +12,7 @@ import purepyodbc
         True,
     ],
 )
-def test_drivers(include_attributes: bool):
+def test_drivers(include_attributes: bool) -> None:
     drivers = purepyodbc.drivers(include_attributes=include_attributes)
     assert drivers
     print("")

@@ -1,9 +1,15 @@
-import purepyodbc
+from __future__ import annotations
 
-from typing import List
+from types import ModuleType
+from typing import TYPE_CHECKING
 
 import pytest
 
+import purepyodbc
+from purepyodbc import Connection, Cursor
+
+if TYPE_CHECKING:
+    import pyodbc as _pyodbc
 
 sql = "select * from information_schema.tables"
 drop_parent_sql = "drop table if exists parent;"
@@ -17,30 +23,30 @@ create_child_sql = """
     );"""
 
 
-def get_attrs(foo) -> List[str]:
+def get_attrs(foo: object) -> list[str]:
     return sorted([attr for attr in dir(foo) if not attr.startswith("_")])
 
 
 @pytest.mark.xfail
-def test_module_attributes(pyodbc):
+def test_module_attributes(pyodbc: ModuleType) -> None:
     assert get_attrs(purepyodbc) == get_attrs(pyodbc)
 
 
 @pytest.mark.xfail
-def test_connection_attributes(connection, pyodbc_connection):
+def test_connection_attributes(connection: Connection, pyodbc_connection: _pyodbc.Connection) -> None:
     assert get_attrs(connection) == get_attrs(pyodbc_connection)
 
 
-def test_connection_searchescape(connection, pyodbc_connection):
+def test_connection_searchescape(connection: Connection, pyodbc_connection: _pyodbc.Connection) -> None:
     assert connection.searchescape == pyodbc_connection.searchescape
 
 
 @pytest.mark.xfail
-def test_cursor_attributes(cursor, pyodbc_cursor):
+def test_cursor_attributes(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor) -> None:
     assert get_attrs(cursor) == get_attrs(pyodbc_cursor)
 
 
-def test_cursor_description(cursor, pyodbc_cursor):
+def test_cursor_description(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor) -> None:
     cursor.execute(sql)
     pyodbc_cursor.execute(sql)
     assert cursor.description == pyodbc_cursor.description
@@ -54,7 +60,7 @@ def test_cursor_description(cursor, pyodbc_cursor):
         {"table": "child"},
     ],
 )
-def test_cursor_tables(cursor, pyodbc_cursor, kwargs):
+def test_cursor_tables(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor, kwargs: dict[str, str]) -> None:
     # Arrange
     cursor.execute(drop_child_sql)
     cursor.execute(drop_parent_sql)
@@ -80,13 +86,11 @@ def test_cursor_tables(cursor, pyodbc_cursor, kwargs):
         for attr in attrs:
             pr_value = getattr(pr, attr)
             r_value = getattr(r, attr)
-            assert (
-                r_value == pr_value
-            ), f"{attr} not equal (expected: {pr_value}, got {r_value})"
+            assert r_value == pr_value, f"{attr} not equal (expected: {pr_value}, got {r_value})"
     assert tables > 0, "No tables in result set"
 
 
-def test_cursor_procedures(cursor, pyodbc_cursor):
+def test_cursor_procedures(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor) -> None:
     cursor.procedures()
     r = cursor.fetchone()
 
@@ -122,7 +126,7 @@ def test_cursor_procedures(cursor, pyodbc_cursor):
         pytest.param({"table": "parent"}, id="table=parent"),
     ],
 )
-def test_cursor_foreignkeys(cursor, pyodbc_cursor, kwargs):
+def test_cursor_foreignkeys(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor, kwargs: dict[str, str]) -> None:
     """Test that Cursor.foreignkeys() works as in pyodbc."""
 
     # Arrange
@@ -170,11 +174,13 @@ def test_cursor_foreignkeys(cursor, pyodbc_cursor, kwargs):
     assert fk_count > 0, "No foreign keys were checked"
 
 
-def test_cursor_fetchone(cursor, pyodbc_cursor):
+def test_cursor_fetchone(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor) -> None:
     a = cursor.execute(sql).fetchone()
     b = pyodbc_cursor.execute(sql).fetchone()
 
     for i, col in enumerate(pyodbc_cursor.description):
         col_name = col[0]
         assert getattr(a, col_name) == getattr(b, col_name)
+        assert a is not None
+        assert b is not None
         assert a[i] == b[i]

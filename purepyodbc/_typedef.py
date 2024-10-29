@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ctypes
 import ctypes as c
-import typing
 
 SIZEOF_LONG_INT = c.sizeof(c.c_long)
 
@@ -42,8 +41,8 @@ SQLHDESC = SQLHANDLE
 UCHAR = ctypes.c_ubyte
 SCHAR = c.c_char
 SQLSCHAR = SCHAR
-SDWORD: typing.Union[typing.Type[c.c_long], typing.Type[c.c_int]]
-UDWORD: typing.Union[typing.Type[c.c_ulong], typing.Type[c.c_uint]]
+SDWORD: type[c.c_long] | type[c.c_int]
+UDWORD: type[c.c_ulong] | type[c.c_uint]
 if SIZEOF_LONG_INT == 4:
     SDWORD = c.c_long
     UDWORD = c.c_ulong
