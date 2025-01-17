@@ -102,6 +102,14 @@ jobs:
         password: Password123
         database: sa
         #port: "34837"
+    - name: Install MySQL (Windows & macOS)
+      if: matrix.os != 'ubuntu-22.04'
+      uses: shogo82148/actions-setup-mysql@v1
+      with:
+        root-password: super-secret-password
+        user: sa
+        password: Password123
+
     # End Windows/macOS steps
 
     # Begin Windows steps
