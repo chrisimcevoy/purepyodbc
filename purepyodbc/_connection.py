@@ -44,6 +44,28 @@ class Connection(Handler):
             value=ConnectionAutocommitMode(int(enabled)).value,
         )
 
+    @property
+    def dbms_name(self) -> str:
+        return self._driver_manager.sql_get_info(connection=self, info_type=InfoType.SQL_DBMS_NAME)
+
+    @property
+    def identifier_quote_char(self) -> str:
+        """The character string that is used as the starting and ending delimiter of a quoted (delimited) identifier in
+        SQL statements.
+
+        If the data source does not support quoted identifiers, a blank is returned.
+
+        This character string can also be used for quoting catalog function arguments when the connection attribute
+        SQL_ATTR_METADATA_ID is set to SQL_TRUE.
+
+        Because the identifier quote character in SQL-92 is the double quotation mark ("), a driver that conforms
+        strictly to SQL-92 will always return the double quotation mark character.
+        """
+        return self._driver_manager.sql_get_info(
+            connection=self,
+            info_type=InfoType.SQL_IDENTIFIER_QUOTE_CHAR,
+        )
+
     def cursor(self) -> Cursor:
         cur = Cursor(self._driver_manager, self)
         return cur

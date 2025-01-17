@@ -607,7 +607,7 @@ class DriverManager:
                         break
                 else:
                     exc_type = Error
-                raise exc_type(f"{first_state}{first_msg}")
+                raise exc_type(f"{first_state} {first_msg}")
             else:
                 raise Error(f"Unhandled return code: {return_code}")
 
@@ -697,10 +697,12 @@ class SqlDataTypeHandling(typing.Generic[T]):
 SQL_DATA_TYPE_MAP: dict[SqlDataType, SqlDataTypeHandling[str | int | bool | datetime.datetime]] = {
     SqlDataType.SQL_CHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
     SqlDataType.SQL_VARCHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
+    SqlDataType.SQL_WCHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
     SqlDataType.SQL_WVARCHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
     SqlDataType.SQL_WLONGVARCHAR: SqlDataTypeHandling(python_type=str, output_converter=str),
     SqlDataType.SQL_BIT: SqlDataTypeHandling(python_type=bool, output_converter=parse_sql_bit),
     SqlDataType.SQL_INTEGER: SqlDataTypeHandling(python_type=int, output_converter=int),
+    SqlDataType.SQL_BIGINT: SqlDataTypeHandling(python_type=int, output_converter=int),
     SqlDataType.SQL_TINYINT: SqlDataTypeHandling(python_type=int, output_converter=int),
     SqlDataType.SQL_TYPE_TIMESTAMP: SqlDataTypeHandling(
         python_type=datetime.datetime, output_converter=datetime.datetime.fromisoformat

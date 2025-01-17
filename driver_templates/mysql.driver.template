@@ -1,0 +1,6 @@
+[MySQL ODBC 9.1 Unicode Driver]
+DRIVER=/usr/lib/x86_64-linux-gnu/odbc/libmyodbc9w.so
+
+[MySQL ODBC 9.1 ANSI Driver]
+DRIVER=/usr/lib/x86_64-linux-gnu/odbc/libmyodbc9a.so
+
