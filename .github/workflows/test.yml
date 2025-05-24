@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "windows-latest"]
+        os: ["ubuntu-22.04", "windows-latest"]
         python-version:
           - "3.9"
           - "3.10"
@@ -52,7 +52,7 @@ jobs:
 
     # Begin Ubuntu steps
     - name: Install ODBC Drivers
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt install unixodbc freetds-bin freetds-dev tdsodbc odbc-postgresql
         odbcinst -j
@@ -62,19 +62,19 @@ jobs:
         sudo odbcinst -i -d -f driver_templates/pgsql.driver.template
         cat /etc/odbcinst.ini
     - name: Build the docker-compose stack
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       run: docker compose up -d sqlserver && docker compose up -d postgresql
     - name: Check running containers
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       run: docker ps -a
     - name: Check logs
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       run: docker logs sqlserver
     # End Ubuntu steps
 
     # Begin Windows/macOS steps
     - name: Install SQL Server (Windows & macOS)
-      if: matrix.os != 'ubuntu-latest'
+      if: matrix.os != 'ubuntu-22.04'
       uses: potatoqualitee/mssqlsuite@v1.7
       with:
         install: sqlengine
@@ -83,7 +83,7 @@ jobs:
         show-log: true
         #collation: Latin1_General_BIN
     - name: Install PostgreSQL (Windows & macOS)
-      if: matrix.os != 'ubuntu-latest'
+      if: matrix.os != 'ubuntu-22.04'
       uses: ikalnytskyi/action-setup-postgres@v7
       with:
         username: sa
