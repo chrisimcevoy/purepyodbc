@@ -75,7 +75,7 @@ jobs:
     # Begin Windows/macOS steps
     - name: Install SQL Server (Windows & macOS)
       if: matrix.os != 'ubuntu-22.04'
-      uses: potatoqualitee/mssqlsuite@v1.7
+      uses: potatoqualitee/mssqlsuite@v1.8
       with:
         install: sqlengine
         version: 2019
