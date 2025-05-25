@@ -68,7 +68,7 @@ jobs:
         
         cat /etc/odbcinst.ini
         
-        curl -L -o mysql-connector-odbc.deb https://dev.mysql.com/get/Downloads/Connector-ODBC/9.1/mysql-connector-odbc_9.1.0-1debian12_amd64.deb
+        curl -L -o mysql-connector-odbc.deb https://dev.mysql.com/get/Downloads/Connector-ODBC/9.3/mysql-connector-odbc_9.3.0-1debian12_amd64.deb
         sudo dpkg -i mysql-connector-odbc.deb
         rm mysql-connector-odbc.deb
         
@@ -106,7 +106,7 @@ jobs:
       if: matrix.os != 'ubuntu-22.04'
       uses: shogo82148/actions-setup-mysql@v1
       with:
-        mysql-version: "9.1.0"
+        mysql-version: "9.3.0"
         root-password: super-secret-password
         user: sa
         password: Password123
@@ -120,7 +120,7 @@ jobs:
         choco install --verbose psqlodbc
     - name: Install MySQL ODBC driver (Windows)
       if: matrix.os == 'windows-latest'
-      run: choco install mysql.odbc --version=9.1.0
+      run: choco install mysql.odbc --version=9.3.0
     # End Windows steps
 
     - name: Set up Python ${{ matrix.python-version }}

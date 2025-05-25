@@ -84,7 +84,7 @@ SQL_SERVER_HOST = os.environ.get("SQL_SERVER_HOST", "localhost")
         #      ],
         #  ),
         pytest.param(
-            ("MySQL ODBC 9.1 Unicode Driver", MYSQL_HOST, 3306, "root", "super-secret-password", "OPTION=67108864"),
+            ("MySQL ODBC 9.3 Unicode Driver", MYSQL_HOST, 3306, "root", "super-secret-password", "OPTION=67108864"),
             id="MySQL Unicode",
             marks=[
                 pytest.mark.skipif(
@@ -96,7 +96,7 @@ SQL_SERVER_HOST = os.environ.get("SQL_SERVER_HOST", "localhost")
         pytest.param(
             # OPTION here enables multi statements.
             # See https://dev.mysql.com/doc/connector-odbc/en/connector-odbc-configuration-connection-parameters.html#codbc-dsn-option-flags
-            ("MySQL ODBC 9.1 ANSI Driver", MYSQL_HOST, 3306, "root", "super-secret-password", "OPTION=67108864"),
+            ("MySQL ODBC 9.3 ANSI Driver", MYSQL_HOST, 3306, "root", "super-secret-password", "OPTION=67108864"),
             id="MySQL ANSI",
             marks=[
                 pytest.mark.skipif(

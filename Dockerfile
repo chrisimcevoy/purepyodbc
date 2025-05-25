@@ -9,7 +9,7 @@ RUN apt-get update && \
     && curl https://packages.microsoft.com/config/debian/12/prod.list | tee /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update -y && \
     ACCEPT_EULA=Y apt-get install msodbcsql17 -y \
-    && curl -L -o mysql-connector-odbc.deb https://dev.mysql.com/get/Downloads/Connector-ODBC/9.1/mysql-connector-odbc_9.1.0-1debian12_amd64.deb \
+    && curl -L -o mysql-connector-odbc.deb https://dev.mysql.com/get/Downloads/Connector-ODBC/9.3/mysql-connector-odbc_9.3.0-1debian12_amd64.deb \
     && dpkg -i mysql-connector-odbc.deb \
     && rm mysql-connector-odbc.deb
 
