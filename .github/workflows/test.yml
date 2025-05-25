@@ -55,15 +55,27 @@ jobs:
       if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt install unixodbc freetds-bin freetds-dev tdsodbc odbc-postgresql
+        
         odbcinst -j
+        
         cat /etc/odbcinst.ini
+        
         sudo odbcinst -i -d -f driver_templates/tds.driver.template
+        
         cat /etc/odbcinst.ini
+        
         sudo odbcinst -i -d -f driver_templates/pgsql.driver.template
+        
+        cat /etc/odbcinst.ini
+        
+        curl -L -o mysql-connector-odbc.deb https://dev.mysql.com/get/Downloads/Connector-ODBC/9.3/mysql-connector-odbc_9.3.0-1debian12_amd64.deb
+        sudo dpkg -i mysql-connector-odbc.deb
+        rm mysql-connector-odbc.deb
+        
         cat /etc/odbcinst.ini
     - name: Build the docker-compose stack
       if: matrix.os == 'ubuntu-22.04'
-      run: docker compose up -d sqlserver && docker compose up -d postgresql
+      run: docker compose up -d sqlserver postgresql mysql
     - name: Check running containers
       if: matrix.os == 'ubuntu-22.04'
       run: docker ps -a
@@ -90,6 +102,15 @@ jobs:
         password: Password123
         database: sa
         #port: "34837"
+    - name: Install MySQL (Windows & macOS)
+      if: matrix.os != 'ubuntu-22.04'
+      uses: shogo82148/actions-setup-mysql@v1
+      with:
+        mysql-version: "9.3.0"
+        root-password: super-secret-password
+        user: sa
+        password: Password123
+
     # End Windows/macOS steps
 
     # Begin Windows steps
@@ -97,6 +118,9 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         choco install --verbose psqlodbc
+    - name: Install MySQL ODBC driver (Windows)
+      if: matrix.os == 'windows-latest'
+      run: choco install mysql.odbc --version=9.3.0
     # End Windows steps
 
     - name: Set up Python ${{ matrix.python-version }}

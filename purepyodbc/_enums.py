@@ -13,8 +13,9 @@ class SqlDataType(Enum):
     """https://docs.microsoft.com/en-us/sql/odbc/reference/appendixes/sql-data-types"""
 
     SQL_TINYINT = -6
+    SQL_BIGINT = -5
     SQL_BIT = -7
-    # SQL_WCHAR = -8
+    SQL_WCHAR = -8
     SQL_WVARCHAR = -9
     SQL_WLONGVARCHAR = -10
     SQL_CHAR = 1
@@ -107,6 +108,8 @@ class InfoType(Enum):
     """
 
     SQL_SEARCH_PATTERN_ESCAPE = 14
+    SQL_DBMS_NAME = 17
+    SQL_IDENTIFIER_QUOTE_CHAR = 29
 
 
 class SqlColumnAttrType(Enum):

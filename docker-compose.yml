@@ -6,13 +6,15 @@ x-common-setup: &common-setup
   volumes:
     - .:/usr/src/app
   depends_on:
+    - mysql
     - postgresql
     - sqlserver
   environment:
     # These are used in conftest.py so that tests target the
     # db services defined in this file.
-    SQL_SERVER_HOST: sqlserver
+    MYSQL_HOST: mysql
     POSTGRESQL_HOST: postgresql
+    SQL_SERVER_HOST: sqlserver
 
 services:
   pypy:
@@ -29,14 +31,15 @@ services:
         BASE_IMAGE: python:3.9-bookworm
     <<: *common-setup
 
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server
-    container_name: sqlserver
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Password123
+  mysql:
+    image: mysql:latest
+    container_name: mysql
     ports:
-      - "1433:1433"
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: super-secret-password
+      MYSQL_USER: sa
+      MYSQL_PASSWORD: Password123
 
   postgresql:
     image: postgres:latest
@@ -46,3 +49,12 @@ services:
     environment:
       POSTGRES_USER: sa
       POSTGRES_PASSWORD: Password123
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Password123
+    ports:
+      - "1433:1433"
