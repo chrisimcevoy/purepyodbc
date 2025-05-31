@@ -20,16 +20,11 @@ jobs:
         with:
           python-version: "3.9"
 
-      - name: Install poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 1.8.4
-
-      - name: Install dependencies
-        run: poetry install
+      - name: Install pre-commit
+        run: pip install pre-commit
 
       - name: Run pre-commit hooks
-        run: poetry run pre-commit run -a
+        run: pre-commit run -a
 
   pytest:
     strategy:
