@@ -56,7 +56,7 @@ services:
       MYSQL_USER: sa
       MYSQL_PASSWORD: Password123
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-psuper-secret-password"]
+      test: ["CMD", "mysql", "-h", "127.0.0.1", "-uroot", "-psuper-secret-password", "-e", "SELECT 1"]
       interval: 5s
       timeout: 5s
       retries: 10
