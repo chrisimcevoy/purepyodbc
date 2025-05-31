@@ -1,13 +1,23 @@
-.PHONY: lint test test.cpython test.pypy
+.PHONY: lint dc-build test test.cpython test.pypy test.cpython-latest test.pypy-latest
 
 
 lint:
-	@poetry run pre-commit run -a
+	@uv run pre-commit run -a
+	@uvx ty check
 
-test: test.pypy test.cpython
+dc-build:
+	@COMPOSE_BAKE=1 docker compose build
 
-test.cpython:
-	@docker compose run --rm cpython poetry run pytest -v
+test: test.cpython test.cpython-latest test.pypy test.pypy-latest
 
-test.pypy:
-	@docker compose run --rm --remove-orphans pypy poetry run pytest -v
+test.cpython: dc-build
+	@docker compose run --rm cpython uv run pytest -v
+
+test.cpython-latest: dc-build
+	@docker compose run --rm cpython-latest uv run pytest -v
+
+test.pypy: dc-build
+	@docker compose run --rm pypy uv run pytest -v
+
+test.pypy-latest: dc-build
+	@docker compose run --rm pypy-latest uv run pytest -v

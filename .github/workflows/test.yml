@@ -20,22 +20,19 @@ jobs:
         with:
           python-version: "3.9"
 
-      - name: Install poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 1.8.4
-
-      - name: Install dependencies
-        run: poetry install
+      - name: Install pre-commit
+        run: pip install pre-commit
 
       - name: Run pre-commit hooks
-        run: poetry run pre-commit run -a
+        run: pre-commit run -a
 
   pytest:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-22.04", "windows-latest"]
+        os:
+          - "ubuntu-22.04"
+          - "windows-latest"
         python-version:
           - "3.9"
           - "3.10"
@@ -52,7 +49,7 @@ jobs:
 
     # Begin Ubuntu steps
     - name: Install ODBC Drivers
-      if: matrix.os == 'ubuntu-22.04'
+      if: runner.os == 'Linux'
       run: |
         sudo apt install unixodbc freetds-bin freetds-dev tdsodbc odbc-postgresql
         
@@ -74,19 +71,13 @@ jobs:
         
         cat /etc/odbcinst.ini
     - name: Build the docker-compose stack
-      if: matrix.os == 'ubuntu-22.04'
-      run: docker compose up -d sqlserver postgresql mysql
-    - name: Check running containers
-      if: matrix.os == 'ubuntu-22.04'
-      run: docker ps -a
-    - name: Check logs
-      if: matrix.os == 'ubuntu-22.04'
-      run: docker logs sqlserver
+      if: runner.os == 'Linux'
+      run: docker compose up -d --wait sqlserver postgresql mysql
     # End Ubuntu steps
 
     # Begin Windows/macOS steps
     - name: Install SQL Server (Windows & macOS)
-      if: matrix.os != 'ubuntu-22.04'
+      if: runner.os == 'Windows' || runner.os == 'macOS'
       uses: potatoqualitee/mssqlsuite@v1.8
       with:
         install: sqlengine
@@ -95,7 +86,7 @@ jobs:
         show-log: true
         #collation: Latin1_General_BIN
     - name: Install PostgreSQL (Windows & macOS)
-      if: matrix.os != 'ubuntu-22.04'
+      if: runner.os == 'Windows' || runner.os == 'macOS'
       uses: ikalnytskyi/action-setup-postgres@v7
       with:
         username: sa
@@ -103,7 +94,7 @@ jobs:
         database: sa
         #port: "34837"
     - name: Install MySQL (Windows & macOS)
-      if: matrix.os != 'ubuntu-22.04'
+      if: runner.os == 'Windows' || runner.os == 'macOS'
       uses: shogo82148/actions-setup-mysql@v1
       with:
         mysql-version: "9.3.0"
@@ -115,26 +106,18 @@ jobs:
 
     # Begin Windows steps
     - name: Install PosgreSQL Driver (Windows)
-      if: matrix.os == 'windows-latest'
+      if: runner.os == 'Windows'
       run: |
         choco install --verbose psqlodbc
     - name: Install MySQL ODBC driver (Windows)
-      if: matrix.os == 'windows-latest'
+      if: runner.os == 'Windows'
       run: choco install mysql.odbc --version=9.3.0
     # End Windows steps
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - name: Install uv and set the python version
+      uses: astral-sh/setup-uv@v5
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.8.4
-
-    - name: Install dependencies with Poetry
-      run: poetry install
-
     - name: Run tests
-      run: poetry run pytest -v
+      run: uv run pytest -v

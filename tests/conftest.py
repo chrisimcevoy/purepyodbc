@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import os
 import platform
+from collections.abc import Generator
 from types import ModuleType
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING
 
 import pytest
 

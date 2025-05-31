@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from ._connection import Connection
 from ._driver_manager import DriverManager, detect_driver_manager
