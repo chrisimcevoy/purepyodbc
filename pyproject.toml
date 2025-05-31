@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "purepyodbc"
-version = "0.1.0"
+version = "0.2.0"
 description = "A pure python ODBC package"
 authors = [
     {name = "Chris McEvoy", email = "chris@chrismcevoy.net"},

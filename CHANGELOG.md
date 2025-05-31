@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/chrisimcevoy/purepyodbc/compare/v0.1.0...v0.2.0) (2025-05-31)
+
+
+### Features
+
+* initial mysql support ([#39](https://github.com/chrisimcevoy/purepyodbc/issues/39)) ([5155704](https://github.com/chrisimcevoy/purepyodbc/commit/5155704406c5ee1e85ea9f4bb3c8854d40e8aa61))
+
+
+### Bug Fixes
+
+* heap corruption in SQLGetData call ([#49](https://github.com/chrisimcevoy/purepyodbc/issues/49)) ([267d2f2](https://github.com/chrisimcevoy/purepyodbc/commit/267d2f2ac221d625038ed631a03fbca796349bf2))
+
 ## 0.1.0 (2024-10-27)
 
 
