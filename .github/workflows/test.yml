@@ -118,18 +118,10 @@ jobs:
       run: choco install mysql.odbc --version=9.3.0
     # End Windows steps
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - name: Install uv and set the python version
+      uses: astral-sh/setup-uv@v5
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.8.4
-
-    - name: Install dependencies with Poetry
-      run: poetry install
-
     - name: Run tests
-      run: poetry run pytest -v
+      run: uv run pytest -v
