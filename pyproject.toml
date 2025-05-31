@@ -46,12 +46,6 @@ wrap-descriptions = 120
 [tool.mypy]
 strict = true
 
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.3"
-pre-commit = ">=4.0"
-pyodbc = { version = "^5.2.0", markers = "platform_python_implementation == 'CPython'" }
-
 [tool.ruff]
 fix = true
 unsafe-fixes = true
@@ -63,3 +57,6 @@ lint.extend-select = [
     "UP",   # pyupgrade
     "W",    # pycodestyle - Warning
 ]
+
+[tool.uv]
+package = false
