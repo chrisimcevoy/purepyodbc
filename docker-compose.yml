@@ -3,12 +3,13 @@ networks:
     name: purepyodbc
 
 x-common-setup: &common-setup
-  volumes:
-    - .:/usr/src/app
   depends_on:
-    - mysql
-    - postgresql
-    - sqlserver
+    mysql:
+      condition: service_healthy
+    postgresql:
+      condition: service_healthy
+    sqlserver:
+      condition: service_healthy
   environment:
     # These are used in conftest.py so that tests target the
     # db services defined in this file.
@@ -21,14 +22,28 @@ services:
     build:
       context: .
       args:
-        BASE_IMAGE: pypy:3.9-7.3.16-bookworm
+        UV_PYTHON: pypy3.9
+    <<: *common-setup
+
+  pypy-latest:
+    build:
+      context: .
+      args:
+        UV_PYTHON: pypy3.11
     <<: *common-setup
 
   cpython:
     build:
       context: .
       args:
-        BASE_IMAGE: python:3.9-bookworm
+        UV_PYTHON: python3.9
+    <<: *common-setup
+
+  cpython-latest:
+    build:
+      context: .
+      args:
+        UV_PYTHON: python3.14
     <<: *common-setup
 
   mysql:
@@ -40,6 +55,11 @@ services:
       MYSQL_ROOT_PASSWORD: super-secret-password
       MYSQL_USER: sa
       MYSQL_PASSWORD: Password123
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-psuper-secret-password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   postgresql:
     image: postgres:latest
@@ -49,6 +69,11 @@ services:
     environment:
       POSTGRES_USER: sa
       POSTGRES_PASSWORD: Password123
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sa"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server
@@ -58,3 +83,9 @@ services:
       - SA_PASSWORD=Password123
     ports:
       - "1433:1433"
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$$SA_PASSWORD" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s

@@ -1,0 +1,5 @@
+*
+!purepyodbc
+!tests
+!pyproject.toml
+!uv.lock

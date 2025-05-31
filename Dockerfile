@@ -1,10 +1,9 @@
-ARG BASE_IMAGE=python:3.9-bookworm
-FROM ${BASE_IMAGE}
+FROM ghcr.io/astral-sh/uv:0.7.9-bookworm
 
 # Install necessary system dependencies and tools
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y git curl unixodbc unixodbc-dev freetds-bin freetds-dev tdsodbc odbc-postgresql \
+    apt-get install -y git curl gnupg unixodbc unixodbc-dev freetds-bin freetds-dev tdsodbc odbc-postgresql \
     && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
     && curl https://packages.microsoft.com/config/debian/12/prod.list | tee /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update -y && \
@@ -13,19 +12,14 @@ RUN apt-get update && \
     && dpkg -i mysql-connector-odbc.deb \
     && rm mysql-connector-odbc.deb
 
-# Configure Git to consider the directory safe
-RUN git config --global --add safe.directory /usr/src/app
-
-# Install Poetry
-ENV POETRY_HOME=/opt/poetry
-ENV PATH="$POETRY_HOME/bin:$PATH"
-RUN curl -sSL https://install.python-poetry.org | python -
-
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy the application files into the container
-COPY . .
+# Copy just dependency files early to leverage caching
+COPY pyproject.toml uv.lock ./
 
-# Install Python dependencies
-RUN poetry install
+ARG UV_PYTHON=python3.9
+ENV UV_PYTHON=${UV_PYTHON}
+RUN uv sync --locked
+
+COPY . .
