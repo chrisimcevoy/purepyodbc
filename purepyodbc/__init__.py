@@ -26,7 +26,7 @@ paramstyle: str = "qmark"
 pooling: bool = True
 threadsafety: int = 1  # TODO: Check threadsafety
 # release-please-action automatically updates this attribute.
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 # This one is merely to mimic the pyodbc api.
 version = __version__
 
