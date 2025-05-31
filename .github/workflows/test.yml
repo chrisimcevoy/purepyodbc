@@ -70,7 +70,7 @@ jobs:
         cat /etc/odbcinst.ini
     - name: Build the docker-compose stack
       if: matrix.os == 'ubuntu-22.04'
-      run: docker compose up -d sqlserver postgresql mysql
+      run: docker compose up -d --wait sqlserver postgresql mysql
     - name: Check running containers
       if: matrix.os == 'ubuntu-22.04'
       run: docker ps -a
