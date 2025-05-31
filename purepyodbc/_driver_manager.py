@@ -385,7 +385,7 @@ class DriverManager:
             cursor.handle,
             column_description.column_number,
             -8,  # TODO: Don't hardcode SQL_C_WCHAR for SQLGetData..? Enum?
-            byref(buffer),
+            buffer,
             buffer_size,
             byref(length_or_indicator),
         )
