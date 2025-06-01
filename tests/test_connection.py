@@ -25,3 +25,15 @@ def test_autocommit(connection: Connection) -> None:
     assert connection.autocommit is True
     connection.autocommit = False
     assert connection.autocommit is False
+
+
+def test_schema_term(connection: Connection) -> None:
+    expected = {
+        "Microsoft SQL Server": "owner",
+        "PostgreSQL": "schema",
+        "MySQL": "",
+    }[connection.dbms_name]
+
+    schema_term = connection.schema_term
+
+    assert schema_term == expected

@@ -126,6 +126,7 @@ def test_cursor_procedures(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor) -> Non
 @pytest.mark.parametrize(
     "kwargs",
     [
+        # TODO: write a separate test for xfails like this, and assert we get the same error message.
         pytest.param(
             {},
             id="No arguments",
@@ -133,14 +134,11 @@ def test_cursor_procedures(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor) -> Non
         ),
         pytest.param({"foreignTable": "child"}, id="foreignTable=child"),
         pytest.param({"table": "parent"}, id="table=parent"),
+        pytest.param({"table": "parent", "foreignTable": "child"}, id="both"),
     ],
 )
 def test_cursor_foreignkeys(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor, kwargs: dict[str, str]) -> None:
     """Test that Cursor.foreignkeys() works as in pyodbc."""
-
-    # TODO: Fix this "pyodbc compatibility" test for MySQL
-    if cursor.connection.dbms_name == "MySQL":
-        pytest.skip("pyodbc compatibility tests aren't working for MySQL")
 
     # Arrange
     cursor.execute(drop_child_sql)
@@ -166,25 +164,39 @@ def test_cursor_foreignkeys(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor, kwarg
         "deferrability",
     ]
 
-    fk_count = 0
-
     # Act
-    pyodbc_cursor.foreignKeys(**kwargs)
     cursor.foreignKeys(**kwargs)
+    pyodbc_cursor.foreignKeys(**kwargs)
+    row = cursor.fetchone()
+    pyodbc_row = pyodbc_cursor.fetchone()
 
     # Assert
-    pyodbc_fk = pyodbc_cursor.fetchone()
-    while pyodbc_fk:
-        fk_count += 1
-        fk = cursor.fetchone()
-        assert fk is not None
+    assert row is not None
 
+    if cursor.connection.dbms_name == "MySQL":
+        # pyodbc's foreignKeys does not seem to work for MySQL.
+        assert pyodbc_row is None
+    else:
+        # Check that purepyodbc returns the same data as pyodbc
         for attr in attrs:
-            pyodbc_fk_value = getattr(pyodbc_fk, attr)
-            fk_value = getattr(fk, attr)
-            assert fk_value == pyodbc_fk_value
-        pyodbc_fk = pyodbc_cursor.fetchone()
-    assert fk_count > 0, "No foreign keys were checked"
+            pyodbc_row_attr = getattr(pyodbc_row, attr)
+            purepyodbc_row_attr = getattr(row, attr)
+            assert (
+                purepyodbc_row_attr == pyodbc_row_attr
+            ), f"{attr} returned different values: {purepyodbc_row_attr} and {pyodbc_row_attr}"
+
+    # Beyond compatibility with pyodbc, check the actual values are populated.
+    for attr in attrs:
+        # Some databases (e.g. MySQL) do not support schemas.
+        # We can tell that programmatically by inspecting the return value of SQLGetInfo for SQL_SCHEMA_TERM.
+        # If it is an empty string, schemas are not supported.
+        if attr.endswith("_schem") and not cursor.connection.schema_term:
+            assert row[attr] is None
+        else:
+            assert row[attr] is not None
+
+    # Only one row should be returned, subsequent calls should return None.
+    assert cursor.fetchone() is pyodbc_cursor.fetchone() is None
 
 
 def test_cursor_fetchone(cursor: Cursor, pyodbc_cursor: _pyodbc.Cursor) -> None:

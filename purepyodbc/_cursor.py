@@ -82,6 +82,11 @@ class Cursor(Handler):
         return rows
 
     def fetchone(self) -> Row | None:
+        """Fetch the next row of a query result set, returning a single sequence, or None when no more data is
+        available.
+
+        :return: A single row, or None when no more data is available.
+        """
         if not self._driver_manager.sql_fetch(self):
             return None
         row = Row()

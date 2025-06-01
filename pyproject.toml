@@ -46,6 +46,9 @@ wrap-descriptions = 120
 [tool.mypy]
 strict = true
 
+[tool.pytest.ini_options]
+xfail_strict = true
+
 [tool.ruff]
 fix = true
 unsafe-fixes = true

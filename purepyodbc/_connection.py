@@ -66,6 +66,22 @@ class Connection(Handler):
             info_type=InfoType.SQL_IDENTIFIER_QUOTE_CHAR,
         )
 
+    @property
+    def schema_term(self) -> str:
+        """A character string with the data source vendor's name for a schema; for example, "owner", "Authorization ID",
+        or "Schema".
+
+        The character string can be returned in upper, lower, or mixed case.
+
+        A SQL-92 Entry level-conformant driver will always return "schema".
+
+        :return: A string with the data source vendor's name for a schema.
+        """
+        return self._driver_manager.sql_get_info(
+            connection=self,
+            info_type=InfoType.SQL_SCHEMA_TERM,
+        )
+
     def cursor(self) -> Cursor:
         cur = Cursor(self._driver_manager, self)
         return cur
