@@ -110,6 +110,7 @@ class InfoType(Enum):
     SQL_SEARCH_PATTERN_ESCAPE = 14
     SQL_DBMS_NAME = 17
     SQL_IDENTIFIER_QUOTE_CHAR = 29
+    SQL_SCHEMA_TERM = 39
 
 
 class SqlColumnAttrType(Enum):
