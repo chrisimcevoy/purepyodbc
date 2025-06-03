@@ -280,6 +280,8 @@ class DriverManager:
         self.check_success(ret, handler)
 
     def sql_free_handle(self, handler: Handler) -> None:
+        if not handler.handle or not handler.handle.value:
+            return
         return_code = self.cdll.SQLFreeHandle(handler.handle_type.value, handler.handle)
         self.check_success(return_code, handler)
 
@@ -305,6 +307,8 @@ class DriverManager:
         self.check_success(return_code, connection)
 
     def sql_disconnect(self, connection: Connection) -> None:
+        if not connection.handle or not connection.handle.value:
+            return
         self.check_success(self.cdll.SQLDisconnect(connection.handle), connection)
 
     def sql_exec_direct(self, cursor: Cursor, query_string: str) -> None:
