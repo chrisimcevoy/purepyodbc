@@ -102,6 +102,8 @@ class Connection(Handler):
         self._driver_manager.sql_end_tran(self, CompletionType.SQL_ROLLBACK)
 
     def close(self) -> None:
+        if self._closed:
+            return
         if not self.autocommit:
             self.rollback()
         self._driver_manager.sql_disconnect(self)
