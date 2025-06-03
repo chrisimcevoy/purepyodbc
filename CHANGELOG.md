@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/chrisimcevoy/purepyodbc/compare/v0.1.0...v0.2.0) (2025-06-03)
+
+
+### Features
+
+* initial mysql support ([#39](https://github.com/chrisimcevoy/purepyodbc/issues/39)) ([5155704](https://github.com/chrisimcevoy/purepyodbc/commit/5155704406c5ee1e85ea9f4bb3c8854d40e8aa61))
+
+
+### Bug Fixes
+
+* guard against double SQLDisconnect ([#53](https://github.com/chrisimcevoy/purepyodbc/issues/53)) ([da25126](https://github.com/chrisimcevoy/purepyodbc/commit/da2512682507e0b2258412d5866fa227598c96ef))
+* heap corruption in SQLGetData call ([#49](https://github.com/chrisimcevoy/purepyodbc/issues/49)) ([267d2f2](https://github.com/chrisimcevoy/purepyodbc/commit/267d2f2ac221d625038ed631a03fbca796349bf2))
+* Verify `cursor.foreignKeys` with MySQL ([#51](https://github.com/chrisimcevoy/purepyodbc/issues/51)) ([41c50ac](https://github.com/chrisimcevoy/purepyodbc/commit/41c50ac78a3b227d50f9236a3f4ba565fbbcb529))
+
 ## 0.1.0 (2024-10-27)
 
 
