@@ -78,7 +78,7 @@ jobs:
     # Begin Windows/macOS steps
     - name: Install SQL Server (Windows & macOS)
       if: runner.os == 'Windows' || runner.os == 'macOS'
-      uses: potatoqualitee/mssqlsuite@v1.8
+      uses: potatoqualitee/mssqlsuite@v1.10
       with:
         install: sqlengine
         version: 2019
