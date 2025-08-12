@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v5
@@ -45,7 +45,7 @@ jobs:
         shell: bash
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     # Begin Ubuntu steps
     - name: Install ODBC Drivers
